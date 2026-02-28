@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TYCUUN - Business Social Network for Entrepreneurs</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bg: '#F8FAFC', // Light Gray/White
+                        card: '#FFFFFF',
+                        cardHover: '#F1F5F9',
+                        accent: '#0078D4', // darker blue for contrast
+                        accentLight: '#00BCF2', // cyan
+                        accentGreen: '#50E6A0', // green
+                        textMain: '#0F172A',
+                        muted: '#64748B',
+                        border: '#E2E8F0'
+                    },
+                    fontFamily: {
+                        display: ['Space Grotesk', 'sans-serif'],
+                        body: ['Outfit', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --bg: #F8FAFC;
+            --card: #FFFFFF;
+            --accent: #0078D4;
+            --accent-light: #00BCF2;
+            --accent-green: #50E6A0;
+            --text-main: #0F172A;
+            --muted: #64748B;
+            --border: #E2E8F0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg);
+            color: var(--text-main);
+            overflow-x: hidden;
+        }
+
+        /* Glassmorphism Nav Light */
+        .nav-glass {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Gradient Text - Light Friendly */
+        .gradient-text {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 50%, var(--accent-green) 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: shimmer 3s linear infinite;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: 0% center; }
+            100% { background-position: 200% center; }
+        }
+
+        /* Reveal Animation */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .reveal-delay-1 { transition-delay: 0.1s; }
+        .reveal-delay-2 { transition-delay: 0.2s; }
+        .reveal-delay-3 { transition-delay: 0.3s; }
+        .reveal-delay-4 { transition-delay: 0.4s; }
+        .reveal-delay-5 { transition-delay: 0.5s; }
+
+        /* Button Styles */
+        .btn-primary {
+            position: relative;
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            transition: all 0.3s ease;
+            overflow: hidden;
+            color: white;
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(0, 120, 212, 0.25);
+        }
+
+        .btn-primary:hover::before {
+            opacity: 1;
+        }
+
+        .btn-outline {
+            position: relative;
+            overflow: hidden;
+            border: 2px solid var(--border);
+            transition: all 0.3s ease;
+            background: white;
+        }
+        
+        .btn-outline:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* Feature Cards - Animated */
+        .feature-card {
+            position: relative;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 1.5rem;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+
+        /* Animated Border Gradient */
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: inherit;
+            background: linear-gradient(135deg, var(--accent-light), var(--accent-green), var(--accent), var(--accent-light));
+            background-size: 400% 400%;
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            animation: borderRotate 4s linear infinite;
+        }
+
+        @keyframes borderRotate {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .feature-card:hover {
+            transform: translateY(-8px) rotateX(5deg) rotateY(2deg); /* 3D Effect */
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+        }
+
+        .feature-card:hover::before {
+            opacity: 1;
+        }
+
+        .feature-card:hover .icon-container {
+            background: linear-gradient(135deg, var(--accent-light), var(--accent-green));
+            color: white;
+        }
+        
+        .feature-card .icon-container {
+            transition: all 0.4s ease;
+        }
+
+        /* Counter Animation */
+        .counter {
+            display: inline-block;
+        }
+
+        /* Mobile Menu */
+        .mobile-menu {
+            transform: translateX(100%);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .mobile-menu.open {
+            transform: translateX(0);
+        }
+
+        /* Focus States */
+        a:focus-visible, button:focus-visible, input:focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 3px;
+        }
+
+        /* Scrollbar Light */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #F1F5F9;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #CBD5E1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent);
+        }
+
+        /* Reduced Motion */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* Floating Animation for Hero Visual */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        .floating {
+            animation: float 6s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="font-body bg-bg">
+
+    <!-- Navigation -->
+    <nav class="nav-glass fixed top-0 left-0 right-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16 md:h-20">
+                <!-- Logo -->
+                <a href="#" class="flex items-center gap-3 group">
+                    <div class="relative w-10 h-10">
+                        <div class="absolute inset-0 bg-accent/10 rounded-lg rotate-45 group-hover:rotate-[60deg] transition-transform duration-500"></div>
+                        <div class="absolute inset-1 rounded-md rotate-45 group-hover:rotate-[30deg] transition-transform duration-500" style="background: linear-gradient(135deg, var(--accent), var(--accent-green));"></div>
+                    </div>
+                    <span class="font-display font-bold text-xl tracking-tight text-textMain">TYCUUN</span>
+                </a>
+
+                <!-- Desktop Navigation -->
+                <div class="hidden md:flex items-center gap-10">
+                    <a href="#features" class="text-muted hover:text-accent transition-colors duration-300 text-sm font-medium relative group">
+                        Features
+                        <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-accent group-hover:w-full transition-all duration-300"></span>
+                    </a>
+                    <a href="#network" class="text-muted hover:text-accent transition-colors duration-300 text-sm font-medium relative group">
+                        Network
+                        <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-accent group-hover:w-full transition-all duration-300"></span>
+                    </a>
+                    <a href="#about" class="text-muted hover:text-accent transition-colors duration-300 text-sm font-medium relative group">
+                        About
+                        <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-accent group-hover:w-full transition-all duration-300"></span>
+                    </a>
+                </div>
+
+                <!-- CTA Button -->
+                <div class="hidden md:block">
+                    <a href="#join" class="btn-primary inline-flex items-center gap-2 font-semibold px-6 py-2.5 rounded-lg text-sm">
+                        Sign In
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+                        </svg>
+                    </a>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <button id="menuBtn" class="md:hidden p-2 text-muted hover:text-accent transition-colors" aria-label="Toggle menu">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div id="mobileMenu" class="mobile-menu fixed inset-y-0 right-0 w-72 bg-white border-l border-border md:hidden shadow-2xl">
+            <div class="p-6">
+                <button id="closeMenuBtn" class="absolute top-4 right-4 p-2 text-muted hover:text-accent" aria-label="Close menu">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+                <nav class="flex flex-col gap-6 mt-12">
+                    <a href="#features" class="text-textMain hover:text-accent transition-colors font-medium">Features</a>
+                    <a href="#network" class="text-textMain hover:text-accent transition-colors font-medium">Network</a>
+                    <a href="#about" class="text-textMain hover:text-accent transition-colors font-medium">About</a>
+                    <a href="#join" class="btn-primary text-white font-semibold px-6 py-3 rounded-lg text-center mt-4">
+                        Sign In
+                    </a>
+                </nav>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
+        <!-- Decorative Blurs -->
+        <div class="absolute top-10 left-0 w-96 h-96 bg-accent/5 rounded-full filter blur-3xl"></div>
+        <div class="absolute bottom-20 right-0 w-96 h-96 bg-accentGreen/10 rounded-full filter blur-3xl"></div>
+
+        <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+            <div class="grid lg:grid-cols-2 gap-16 items-center">
+                <!-- Left Content -->
+                <div class="text-center lg:text-left">
+                    <!-- Badge -->
+                    <div class="reveal reveal-delay-1 inline-flex items-center gap-2 bg-accent/5 border border-accent/20 text-accent text-xs font-semibold px-4 py-2 rounded-full mb-8">
+                        <span class="w-2 h-2 bg-accent rounded-full animate-pulse"></span>
+                        Business Social Network
+                    </div>
+
+                    <!-- Headline -->
+                    <h1 class="reveal reveal-delay-2 font-display font-bold text-4xl sm:text-5xl md:text-6xl lg:text-7xl leading-[1.1] mb-8 text-textMain">
+                        You are in the
+                        <span class="block gradient-text">Business Social Network</span>
+                    </h1>
+
+                    <!-- Subheadline -->
+                    <p class="reveal reveal-delay-3 text-muted text-lg md:text-xl leading-relaxed mb-10 max-w-xl mx-auto lg:mx-0">
+                        Designed to support entrepreneurs for business connect with real people, promote products, watch business updates and elevate your business skills.
+                    </p>
+
+                    <!-- Buttons -->
+                    <div class="reveal reveal-delay-4 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
+                        <a href="#join" class="btn-primary w-full sm:w-auto inline-flex items-center justify-center gap-2 font-semibold px-8 py-4 rounded-xl text-base">
+                            Get Started Free
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                            </svg>
+                        </a>
+                        <a href="#about" class="btn-outline w-full sm:w-auto inline-flex items-center justify-center gap-2 text-textMain font-semibold px-8 py-4 rounded-xl text-base">
+                            Learn More
+                        </a>
+                    </div>
+
+                    <!-- Stats -->
+                    <div class="reveal reveal-delay-5 flex items-center justify-center lg:justify-start gap-8 mt-12 pt-8 border-t border-border">
+                        <div>
+                            <div class="font-display font-bold text-2xl text-textMain"><span class="counter" data-target="500">0</span>+</div>
+                            <div class="text-muted text-sm">Early Members</div>
+                        </div>
+                        <div class="w-px h-10 bg-border"></div>
+                        <div>
+                            <div class="font-display font-bold text-2xl text-textMain"><span class="counter" data-target="50">0</span>+</div>
+                            <div class="text-muted text-sm">Industries</div>
+                        </div>
+                        <div class="w-px h-10 bg-border"></div>
+                        <div>
+                            <div class="font-display font-bold text-2xl text-textMain"><span class="counter" data-target="100">0</span>%</div>
+                            <div class="text-muted text-sm">Free Access</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right - Visual -->
+                <div class="reveal reveal-delay-3 hidden lg:flex justify-center items-center">
+                    <div class="relative floating">
+                        <!-- Main Card -->
+                        <div class="w-80 h-[500px] bg-white rounded-3xl border border-border p-6 shadow-xl relative overflow-hidden">
+                            <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-accent via-accentLight to-accentGreen"></div>
+                            
+                            <!-- Header -->
+                            <div class="flex items-center justify-between mb-6">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-12 h-12 rounded-xl flex items-center justify-center bg-gray-50 border border-border">
+                                        <svg class="w-6 h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div class="font-display font-semibold text-textMain">TYCUUN</div>
+                                        <div class="text-muted text-xs">Business Network</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Simple Image Placeholder -->
+                            <div class="w-full h-40 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl mb-6 flex items-center justify-center border border-border">
+                                <svg class="w-16 h-16 text-border" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                </svg>
+                            </div>
+
+                            <!-- Activity Feed -->
+                            <div class="space-y-3">
+                                <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-border">
+                                    <div class="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0">
+                                        <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                        </svg>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="text-sm text-textMain truncate">New connection request</div>
+                                        <div class="text-xs text-muted">2 min ago</div>
+                                    </div>
+                                    <div class="w-2 h-2 rounded-full bg-accentGreen animate-pulse"></div>
+                                </div>
+
+                                <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-border">
+                                    <div class="w-10 h-10 rounded-lg bg-accentGreen/10 flex items-center justify-center flex-shrink-0">
+                                        <svg class="w-5 h-5 text-accentGreen" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                                        </svg>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="text-sm text-textMain truncate">Product viewed 24 times</div>
+                                        <div class="text-xs text-muted">15 min ago</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Floating Elements -->
+                        <div class="absolute -top-4 -right-4 w-16 h-16 rounded-2xl border border-border bg-white flex items-center justify-center shadow-lg" style="animation-duration: 3s;">
+                            <svg class="w-8 h-8 text-accentGreen" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                            </svg>
+                        </div>
+
+                        <div class="absolute -bottom-4 -left-4 w-20 h-20 bg-white rounded-2xl border border-border shadow-lg flex items-center justify-center">
+                            <div class="text-center">
+                                <div class="font-display font-bold text-lg text-accent">24/7</div>
+                                <div class="text-muted text-xs">Support</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scroll Indicator -->
+        
+    </section>
+
+    <!-- Marquee Section -->
+    <section class="relative py-6 border-y border-border overflow-hidden bg-white">
+        <div class="flex whitespace-nowrap marquee">
+            <div class="flex items-center gap-12 px-6">
+                <span class="text-muted text-sm font-medium">Entrepreneurs</span>
+                <span class="text-accent">+</span>
+                <span class="text-muted text-sm font-medium">Small Businesses</span>
+                <span class="text-accentGreen">+</span>
+                <span class="text-muted text-sm font-medium">Large Enterprises</span>
+                <span class="text-accent">+</span>
+                <span class="text-muted text-sm font-medium">Business Trainers</span>
+                <span class="text-accentGreen">+</span>
+                <span class="text-muted text-sm font-medium">Influencers</span>
+                <span class="text-accent">+</span>
+                <span class="text-muted text-sm font-medium">Financial Advisors</span>
+                <span class="text-accentGreen">+</span>
+            </div>
+            <!-- Duplicate for seamless loop -->
+            <div class="flex items-center gap-12 px-6">
+                <span class="text-muted text-sm font-medium">Entrepreneurs</span>
+                <span class="text-accent">+</span>
+                <span class="text-muted text-sm font-medium">Small Businesses</span>
+                <span class="text-accentGreen">+</span>
+                <span class="text-muted text-sm font-medium">Large Enterprises</span>
+                <span class="text-accent">+</span>
+                <span class="text-muted text-sm font-medium">Business Trainers</span>
+                <span class="text-accentGreen">+</span>
+                <span class="text-muted text-sm font-medium">Influencers</span>
+                <span class="text-accent">+</span>
+                <span class="text-muted text-sm font-medium">Financial Advisors</span>
+                <span class="text-accentGreen">+</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="relative py-24 md:py-32 overflow-hidden bg-bg">
+        <div class="absolute top-0 right-0 w-96 h-96 bg-accentGreen/5 rounded-full filter blur-3xl -translate-y-1/2"></div>
+
+        <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid lg:grid-cols-2 gap-16 items-center">
+                <!-- Left Content -->
+                <div class="reveal">
+                    <div class="inline-flex items-center gap-2 text-accent text-sm font-medium mb-4">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        ABOUT TYCUUN
+                    </div>
+                    <h2 class="font-display font-bold text-3xl md:text-4xl lg:text-5xl mb-6 leading-tight text-textMain">
+                        A Platform for <span class="gradient-text">Entrepreneurs</span>
+                    </h2>
+                    <p class="text-muted text-lg leading-relaxed mb-6">
+                        Tycuun is a platform for entrepreneurs, designed to help both small and large businesses establish and nurture valuable connections. It serves as an online marketplace to connect buyer, seller, business trainers, influencers and financial advisors.
+                    </p>
+                    <p class="text-muted text-lg leading-relaxed mb-8">
+                        Where users can showcase their products, offers, and other business credentials. Entrepreneurs can explore new business launches, stay updated on market trends, and share valuable sales & financial insights.
+                    </p>
+                    
+                    <div class="flex flex-wrap gap-3">
+                        <span class="px-4 py-2 bg-accent/5 border border-accent/20 rounded-full text-sm text-accent">Buyers</span>
+                        <span class="px-4 py-2 bg-accentGreen/5 border border-accentGreen/20 rounded-full text-sm text-accentGreen">Sellers</span>
+                        <span class="px-4 py-2 bg-accent/5 border border-accent/20 rounded-full text-sm text-accent">Trainers</span>
+                        <span class="px-4 py-2 bg-accentGreen/5 border border-accentGreen/20 rounded-full text-sm text-accentGreen">Influencers</span>
+                        <span class="px-4 py-2 bg-accent/5 border border-accent/20 rounded-full text-sm text-accent">Advisors</span>
+                    </div>
+                </div>
+
+                <!-- Right - Visual -->
+                <div class="reveal reveal-delay-2 relative">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-4">
+                            <div class="bg-white rounded-2xl p-6 border border-border shadow-sm hover:shadow-md transition-shadow">
+                                <div class="text-4xl font-display font-bold text-accent mb-2">500+</div>
+                                <div class="text-muted text-sm">Active Members</div>
+                            </div>
+                            <div class="bg-white rounded-2xl p-6 border border-border shadow-sm hover:shadow-md transition-shadow">
+                                <svg class="w-10 h-10 text-accent mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                </svg>
+                                <div class="text-textMain font-semibold mb-1">Connect</div>
+                                <div class="text-muted text-sm">Build relationships</div>
+                            </div>
+                        </div>
+                        <div class="space-y-4 pt-8">
+                            <div class="bg-white rounded-2xl p-6 border border-border shadow-sm hover:shadow-md transition-shadow">
+                                <svg class="w-10 h-10 text-accentGreen mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                                </svg>
+                                <div class="text-textMain font-semibold mb-1">Grow</div>
+                                <div class="text-muted text-sm">Scale your business</div>
+                            </div>
+                            <div class="bg-white rounded-2xl p-6 border border-border shadow-sm hover:shadow-md transition-shadow">
+                                <svg class="w-10 h-10 text-accent mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                                </svg>
+                                <div class="text-textMain font-semibold mb-1">Secure</div>
+                                <div class="text-muted text-sm">Verified profiles</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="relative py-24 md:py-32 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <!-- Section Header -->
+            <div class="reveal text-center mb-16 md:mb-20">
+                <div class="inline-flex items-center gap-2 text-accent text-sm font-medium mb-4">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+                    </svg>
+                    WHAT WE OFFER
+                </div>
+                <h2 class="font-display font-bold text-3xl md:text-4xl lg:text-5xl mb-6 text-textMain">
+                    Everything You Need to <span class="gradient-text">Succeed</span>
+                </h2>
+                <p class="text-muted text-lg max-w-2xl mx-auto">
+                    Tycuun brings you face-to-face with potential customers, partners, and opportunities that can take your business to the next level.
+                </p>
+            </div>
+
+            <!-- Features Grid -->
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Feature 1 -->
+                <div class="reveal reveal-delay-1 feature-card p-8">
+                    <div class="icon-container w-14 h-14 rounded-xl bg-gray-100 flex items-center justify-center mb-6">
+                        <svg class="w-7 h-7 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                        </svg>
+                    </div>
+                    <h3 class="font-display font-semibold text-xl text-textMain mb-3">Business Network Connects</h3>
+                    <p class="text-muted text-sm leading-relaxed">Connect with real people in your industry. Build meaningful relationships that drive business growth.</p>
+                </div>
+
+                <!-- Feature 2 -->
+                <div class="reveal reveal-delay-2 feature-card p-8">
+                    <div class="icon-container w-14 h-14 rounded-xl bg-gray-100 flex items-center justify-center mb-6">
+                        <svg class="w-7 h-7 text-accentGreen" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+                        </svg>
+                    </div>
+                    <h3 class="font-display font-semibold text-xl text-textMain mb-3">Promote Products</h3>
+                    <p class="text-muted text-sm leading-relaxed">Showcase your products and offers to a targeted audience of potential buyers and partners.</p>
+                </div>
+
+                <!-- Feature 3 -->
+                <div class="reveal reveal-delay-3 feature-card p-8">
+                    <div class="icon-container w-14 h-14 rounded-xl bg-gray-100 flex items-center justify-center mb-6">
+                        <svg class="w-7 h-7 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                        </svg>
+                    </div>
+                    <h3 class="font-display font-semibold text-xl text-textMain mb-3">Watch Business Updates</h3>
+                    <p class="text-muted text-sm leading-relaxed">Stay informed with real-time updates on market trends, new launches, and industry insights.</p>
+                </div>
+
+                <!-- Feature 4 -->
+                <div class="reveal reveal-delay-4 feature-card p-8">
+                    <div class="icon-container w-14 h-14 rounded-xl bg-gray-100 flex items-center justify-center mb-6">
+                        <svg class="w-7 h-7 text-accentGreen" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                        </svg>
+                    </div>
+                    <h3 class="font-display font-semibold text-xl text-textMain mb-3">Elevate Business Skills</h3>
+                    <p class="text-muted text-sm leading-relaxed">Access training resources, mentorship programs, and skill development opportunities.</p>
+                </div>
+
+                <!-- Feature 5 -->
+                <div class="reveal reveal-delay-5 feature-card p-8">
+                    <div class="icon-container w-14 h-14 rounded-xl bg-gray-100 flex items-center justify-center mb-6">
+                        <svg class="w-7 h-7 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                        </svg>
+                    </div>
+                    <h3 class="font-display font-semibold text-xl text-textMain mb-3">Online Marketplace</h3>
+                    <p class="text-muted text-sm leading-relaxed">A dedicated marketplace connecting buyers, sellers, trainers, influencers, and advisors.</p>
+                </div>
+
+                <!-- Feature 6 -->
+                <div class="reveal reveal-delay-5 feature-card p-8">
+                    <div class="icon-container w-14 h-14 rounded-xl bg-gray-100 flex items-center justify-center mb-6">
+                        <svg class="w-7 h-7 text-accentGreen" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                        </svg>
+                    </div>
+                    <h3 class="font-display font-semibold text-xl text-textMain mb-3">Sales & Financial Insights</h3>
+                    <p class="text-muted text-sm leading-relaxed">Share and gain valuable insights on sales strategies and financial planning.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section id="join" class="relative py-24 md:py-32 overflow-hidden bg-bg">
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full blur-3xl opacity-60" style="background: radial-gradient(circle, rgba(0, 188, 242, 0.1), transparent 70%);"></div>
+
+        <div class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="reveal text-center">
+                <h2 class="font-display font-bold text-3xl md:text-4xl lg:text-5xl mb-6 text-textMain">
+                    Ready to <span class="gradient-text">Take Off?</span>
+                </h2>
+                <p class="text-muted text-lg md:text-xl max-w-2xl mx-auto mb-10">
+                    Join TYCUUN today and become part of a thriving business network designed for entrepreneurs like you.
+                </p>
+
+                <!-- Form -->
+                <form id="signupForm" class="max-w-lg mx-auto">
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <input 
+                            type="email" 
+                            placeholder="Enter your email address" 
+                            required
+                            class="flex-1 px-6 py-4 bg-white border border-border rounded-xl text-textMain placeholder-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20 transition-all text-base shadow-sm"
+                        >
+                        <button type="submit" class="btn-primary whitespace-nowrap font-semibold px-8 py-4 rounded-xl text-base transition-all shadow-lg">
+                            Sign In
+                        </button>
+                    </div>
+                    <p class="text-muted text-sm mt-4">Join the business network — it's free to get started.</p>
+                </form>
+
+                <!-- Success -->
+                <div id="successMsg" class="hidden mt-8 p-6 bg-accent/5 border border-accent/20 rounded-2xl">
+                    <svg class="w-12 h-12 text-accent mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <h3 class="font-display font-semibold text-xl text-textMain mb-2">Welcome to TYCUUN</h3>
+                    <p class="text-muted">Your business journey starts now. Check your email for next steps.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="relative border-t border-border py-16 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-4 gap-12 mb-12">
+                <!-- Brand -->
+                <div class="md:col-span-2">
+                    <a href="#" class="flex items-center gap-3 mb-4">
+                        <div class="relative w-10 h-10">
+                            <div class="absolute inset-0 bg-accent/20 rounded-lg rotate-45"></div>
+                            <div class="absolute inset-1 rounded-md rotate-45" style="background: linear-gradient(135deg, var(--accent), var(--accent-green));"></div>
+                        </div>
+                        <span class="font-display font-bold text-xl text-textMain">TYCUUN</span>
+                    </a>
+                    <p class="text-muted max-w-sm mb-6">
+                        The business social network designed to support entrepreneurs for business connect with real people.
+                    </p>
+                    <!-- Social -->
+                    <div class="flex items-center gap-4">
+                        <a href="#" class="w-10 h-10 rounded-lg bg-gray-50 border border-border hover:bg-accent/5 hover:border-accent flex items-center justify-center transition-all" aria-label="LinkedIn">
+                            <svg class="w-5 h-5 text-muted hover:text-accent transition-colors" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                            </svg>
+                        </a>
+                        <a href="#" class="w-10 h-10 rounded-lg bg-gray-50 border border-border hover:bg-accent/5 hover:border-accent flex items-center justify-center transition-all" aria-label="Twitter">
+                            <svg class="w-5 h-5 text-muted hover:text-accent transition-colors" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Links -->
+                <div>
+                    <h4 class="font-semibold text-textMain mb-4">Platform</h4>
+                    <ul class="space-y-3">
+                        <li><a href="#features" class="text-muted hover:text-accent transition-colors">Features</a></li>
+                        <li><a href="#about" class="text-muted hover:text-accent transition-colors">About</a></li>
+                        <li><a href="#network" class="text-muted hover:text-accent transition-colors">Network</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="font-semibold text-textMain mb-4">Legal</h4>
+                    <ul class="space-y-3">
+                        <li><a href="#" class="text-muted hover:text-accent transition-colors">Privacy</a></li>
+                        <li><a href="#" class="text-muted hover:text-accent transition-colors">Terms</a></li>
+                        <li><a href="#" class="text-muted hover:text-accent transition-colors">Contact</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Copyright -->
+            <div class="pt-8 border-t border-border flex flex-col md:flex-row items-center justify-between gap-4">
+                <p class="text-muted text-sm">2025 TYCUUN. All rights reserved.</p>
+                <p class="text-muted text-sm">Built for entrepreneurs, by entrepreneurs.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile Menu
+        const menuBtn = document.getElementById('menuBtn');
+        const closeMenuBtn = document.getElementById('closeMenuBtn');
+        const mobileMenu = document.getElementById('mobileMenu');
+
+        if (menuBtn && mobileMenu && closeMenuBtn) {
+            menuBtn.addEventListener('click', () => mobileMenu.classList.add('open'));
+            closeMenuBtn.addEventListener('click', () => mobileMenu.classList.remove('open'));
+            mobileMenu.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', () => mobileMenu.classList.remove('open'));
+            });
+        }
+
+        // Scroll Reveal
+        function initScrollReveal() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+            document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+        }
+
+        // Counter Animation
+        function initCounters() {
+            const counters = document.querySelectorAll('.counter');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const counter = entry.target;
+                        const target = parseInt(counter.dataset.target);
+                        animateCounter(counter, target);
+                        observer.unobserve(counter);
+                    }
+                });
+            }, { threshold: 0.5 });
+
+            counters.forEach(counter => observer.observe(counter));
+        }
+
+        function animateCounter(element, target) {
+            let current = 0;
+            const increment = target / 50;
+            const duration = 2000;
+            const stepTime = duration / 50;
+
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= target) {
+                    element.textContent = target;
+                    clearInterval(timer);
+                } else {
+                    element.textContent = Math.floor(current);
+                }
+            }, stepTime);
+        }
+
+        // Form Handling
+        function initForms() {
+            const form = document.getElementById('signupForm');
+            const successMsg = document.getElementById('successMsg');
+
+            if (form && successMsg) {
+                form.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    form.classList.add('hidden');
+                    successMsg.classList.remove('hidden');
+                });
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initScrollReveal();
+            initCounters();
+            initForms();
+        });
+    </script>
+</body>
+</html>
