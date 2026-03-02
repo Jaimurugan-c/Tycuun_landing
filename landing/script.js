@@ -98,17 +98,29 @@ cards.forEach(card => {
 const menuBtn = document.getElementById('menuBtn');
 const closeMenuBtn = document.getElementById('closeMenuBtn');
 const mobileMenu = document.getElementById('mobileMenu');
+const menuOverlay = document.getElementById('menuOverlay');
 
-if (menuBtn && mobileMenu && closeMenuBtn) {
-    menuBtn.addEventListener('click', () => mobileMenu.classList.add('open'));
-    closeMenuBtn.addEventListener('click', () => mobileMenu.classList.remove('open'));
-    
-    // Close menu when clicking a link inside it
+if (menuBtn && mobileMenu && closeMenuBtn && menuOverlay) {
+
+    menuBtn.addEventListener('click', () => {
+        mobileMenu.classList.add('open');
+        menuOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden'; // prevent scroll
+    });
+
+    function closeMenu() {
+        mobileMenu.classList.remove('open');
+        menuOverlay.classList.remove('active');
+        document.body.style.overflow = 'auto';
+    }
+
+    closeMenuBtn.addEventListener('click', closeMenu);
+    menuOverlay.addEventListener('click', closeMenu);
+
+    // Close when clicking links
     const mobileLinks = mobileMenu.querySelectorAll('a');
     mobileLinks.forEach(link => {
-        link.addEventListener('click', () => {
-            mobileMenu.classList.remove('open');
-        });
+        link.addEventListener('click', closeMenu);
     });
 }
 
