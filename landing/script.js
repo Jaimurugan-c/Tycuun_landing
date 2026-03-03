@@ -1,3 +1,24 @@
+// --- Theme Toggle Logic ---
+const themeToggleBtns = document.querySelectorAll('#themeToggle, #themeToggleMobile');
+const htmlElement = document.documentElement;
+
+// Check for saved theme preference or default to 'dark'
+const currentTheme = localStorage.getItem('theme') || 'dark';
+htmlElement.classList.toggle('dark', currentTheme === 'dark');
+
+function toggleTheme() {
+    const isDark = htmlElement.classList.toggle('dark');
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    // Re-initialize particles to update their colors for the new theme
+    if (typeof createParticles === 'function') {
+        createParticles();
+    }
+}
+
+themeToggleBtns.forEach(btn => {
+    btn.addEventListener('click', toggleTheme);
+});
+
 // --- Particle Background Logic ---
 const canvas = document.getElementById('networkCanvas');
 const ctx = canvas.getContext('2d');
@@ -18,6 +39,8 @@ function resizeCanvas() {
 function createParticles() {
     particles = [];
     const count = Math.floor(window.innerWidth / 20); // Density
+    // Adjust colors based on theme
+    const isDark = htmlElement.classList.contains('dark');
     
     for (let i = 0; i < count; i++) {
         particles.push({
@@ -26,8 +49,11 @@ function createParticles() {
             size: Math.random() * 2 + 0.5,
             speedY: Math.random() * 0.3 + 0.1, // Rising speed
             speedX: (Math.random() - 0.5) * 0.2,
-            color: Math.random() > 0.5 ? 'rgba(0, 188, 242, ' : 'rgba(80, 230, 160, ',
-            opacity: Math.random() * 0.5 + 0.1
+            // Use darker particles for light mode, brighter for dark mode
+            color: isDark 
+                ? (Math.random() > 0.5 ? 'rgba(0, 188, 242, ' : 'rgba(80, 230, 160, ')
+                : (Math.random() > 0.5 ? 'rgba(0, 100, 180, ' : 'rgba(50, 160, 120, '),
+            opacity: Math.random() * (isDark ? 0.5 : 0.3) + 0.1
         });
     }
 }

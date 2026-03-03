@@ -1,11 +1,31 @@
+/* Define Light Mode as Default in :root */
 :root {
+    --bg: #F8FAFC; /* Slate 50 */
+    --card: #FFFFFF;
+    --card-hover: #F1F5F9; /* Slate 100 */
+    --accent: #0078D4; /* Darker blue for contrast on white */
+    --accent-light: #50E6A0;
+    --accent-dark: #005A9E;
+    --accent-glow: rgba(0, 120, 212, 0.4);
+    --muted: #64748B; /* Slate 500 */
+    --border: #E2E8F0; /* Slate 200 */
+    --text-main: #0F172A; /* Slate 900 */
+    --nav-bg: rgba(248, 250, 252, 0.85);
+}
+
+/* Define Dark Mode under .dark class */
+.dark {
     --bg: #050810;
     --card: #0c1220;
+    --card-hover: #141c2e;
     --accent: #00BCF2;
     --accent-light: #50E6A0;
     --accent-dark: #0078D4;
     --accent-glow: rgba(0, 188, 242, 0.4);
     --muted: #5a6a7e;
+    --border: #1a2435;
+    --text-main: #ffffff;
+    --nav-bg: rgba(5, 8, 16, 0.85);
 }
 
 * {
@@ -21,8 +41,9 @@ html {
 body {
     font-family: 'Outfit', sans-serif;
     background: var(--bg);
-    color: #ffffff;
+    color: var(--text-main);
     overflow-x: hidden;
+    transition: background 0.3s ease, color 0.3s ease;
 }
 
 /* Particle Canvas Background */
@@ -38,13 +59,14 @@ body {
 
 /* Glassmorphism Nav */
 .nav-glass {
-    background: rgba(5, 8, 16, 0.85);
+    background: var(--nav-bg);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border-bottom: 1px solid rgba(0, 188, 242, 0.1);
+    border-bottom: 1px solid var(--border);
+    transition: background 0.3s ease;
 }
 
-/* Desktop Nav Links */
+/* Nav Links */
 .nav-link {
     color: var(--muted);
     font-size: 0.875rem;
@@ -74,7 +96,7 @@ body {
 
 /* Mobile Nav Links */
 .mobile-link {
-    color: #ffffff;
+    color: var(--text-main);
     font-weight: 500;
     transition: color 0.3s ease;
 }
@@ -85,7 +107,7 @@ body {
 
 /* Gradient Text */
 .gradient-text {
-    background: linear-gradient(135deg, #0078D4 0%, #00BCF2 50%, #50E6A0 100%);
+    background: linear-gradient(135deg, var(--accent-dark) 0%, var(--accent) 50%, var(--accent-light) 100%);
     background-size: 200% auto;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -101,10 +123,11 @@ body {
 /* Floating Shapes */
 .floating-shape {
     position: absolute;
-    border: 1px solid rgba(0, 188, 242, 0.15);
+    border: 1px solid var(--border);
     border-radius: 50%;
     animation: floatShape 20s ease-in-out infinite;
     pointer-events: none;
+    opacity: 0.6;
 }
 
 .shape-1 { width: 400px; height: 400px; top: 10%; left: -10%; }
@@ -155,7 +178,7 @@ body {
 
 .btn-primary:hover {
     transform: translateY(-3px);
-    box-shadow: 0 15px 40px rgba(0, 188, 242, 0.35);
+    box-shadow: 0 15px 40px var(--accent-glow);
 }
 
 .btn-primary:hover::before {
@@ -165,7 +188,8 @@ body {
 .btn-outline {
     position: relative;
     overflow: hidden;
-    border: 2px solid rgba(0, 188, 242, 0.4);
+    border: 2px solid var(--border);
+    color: var(--text-main);
     transition: all 0.3s ease;
 }
 
@@ -173,7 +197,7 @@ body {
     content: '';
     position: absolute;
     inset: 0;
-    background: rgba(0, 188, 242, 0.1);
+    background: var(--card-hover);
     transform: scaleX(0);
     transform-origin: right;
     transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
@@ -196,10 +220,10 @@ body {
 
 .feature-card-3d {
     position: relative;
-    background: rgba(12, 18, 32, 0.6);
-    border: 1px solid rgba(0, 188, 242, 0.1);
+    background: var(--card);
+    border: 1px solid var(--border);
     transform-style: preserve-3d;
-    transition: transform 0.3s ease-out, box-shadow 0.3s ease-out;
+    transition: transform 0.3s ease-out, box-shadow 0.3s ease-out, background 0.3s ease;
     will-change: transform;
 }
 
@@ -230,7 +254,7 @@ body {
     content: "";
     position: absolute;
     inset: 0;
-    background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(0, 188, 242, 0.15), transparent 60%);
+    background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), var(--accent-glow), transparent 60%);
     opacity: 0;
     transition: opacity 0.3s;
     z-index: -1;
@@ -238,13 +262,13 @@ body {
 }
 
 .feature-card-3d:hover::after {
-    opacity: 1;
+    opacity: 0.2;
 }
 
 .icon-3d {
     transform: translateZ(40px) scale(0.9);
     transition: transform 0.3s ease;
-    filter: drop-shadow(0 10px 15px rgba(0, 188, 242, 0.3));
+    filter: drop-shadow(0 10px 15px var(--accent-glow));
 }
 
 .feature-card-3d:hover .icon-3d {
@@ -267,7 +291,6 @@ body {
 }
 
 /* Mobile Menu Animation */
-/* Overlay Background */
 .menu-overlay {
     position: fixed;
     inset: 0;
@@ -291,7 +314,7 @@ body {
     right: 0;
     height: 100vh;
     width: 320px;
-    background: #ffffff; /* SOLID background */
+    background: var(--card);
     box-shadow: -10px 0 30px rgba(0,0,0,0.15);
     transform: translateX(100%);
     transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
@@ -314,7 +337,8 @@ body {
     top: 20px;
     right: 20px;
     font-size: 22px;
-    background: #f3f4f6;
+    background: var(--bg);
+    color: var(--text-main);
     border: none;
     width: 40px;
     height: 40px;
@@ -324,7 +348,7 @@ body {
 }
 
 .close-btn:hover {
-    background: #e5e7eb;
+    background: var(--card-hover);
 }
 
 /* Navigation */
@@ -335,34 +359,6 @@ body {
     margin-top: 60px;
 }
 
-.mobile-link {
-    font-size: 18px;
-    font-weight: 500;
-    color: #111827;
-    text-decoration: none;
-    transition: 0.3s;
-}
-
-.mobile-link:hover {
-    color: #2563eb;
-}
-
-/* Sign In Button */
-.btn-primary {
-    margin-top: 20px;
-    background: #2563eb;
-    color: white;
-    padding: 12px 20px;
-    text-align: center;
-    border-radius: 8px;
-    font-weight: 600;
-    text-decoration: none;
-    transition: 0.3s;
-}
-
-.btn-primary:hover {
-    background: #1d4ed8;
-}
 /* Progress Bar */
 .progress-bar {
     height: 2px;
@@ -389,11 +385,11 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 }
 
 ::-webkit-scrollbar-track {
-    background: #050810;
+    background: var(--bg);
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #1a2435;
+    background: var(--border);
     border-radius: 3px;
 }
 
@@ -414,7 +410,6 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 @media (max-width: 768px) {
     .floating-shape { display: none; }
     
-    /* Adjust hero stats grid for mobile */
     .reveal-delay-5.flex {
         flex-wrap: wrap;
         gap: 1.5rem;
