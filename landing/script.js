@@ -18,7 +18,116 @@ function toggleTheme() {
 themeToggleBtns.forEach(btn => {
     btn.addEventListener('click', toggleTheme);
 });
+// Popup logic
+document.addEventListener('DOMContentLoaded', () => {
+  const popup = document.getElementById('welcomePopup');
+  const closeBtn = document.getElementById('closePopup');
+  const form = document.getElementById('leadForm');
+  const formState = document.getElementById('formState');
+  const thankState = document.getElementById('thankYouState');
 
+  // Show popup after 800ms delay (on page load)
+  setTimeout(() => {
+    popup.classList.add('active');
+  }, 800);
+
+  // Close popup
+  function closePopup() {
+    popup.classList.remove('active');
+  }
+
+  closeBtn.addEventListener('click', closePopup);
+
+  // Optional: close when clicking outside the box
+  popup.addEventListener('click', (e) => {
+    if (e.target === popup) closePopup();
+  });
+
+  // Form submission
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    
+    // Here you can send data to backend (fetch/axios) if needed
+    // For demo we just show thank you
+
+    formState.classList.add('hidden');
+    thankState.classList.remove('hidden');
+
+    // Auto close after 3 seconds
+    setTimeout(closePopup, 1000);
+  });
+
+  // Simple particles inside popup (similar style to your main canvas)
+  const canvas = document.getElementById('popupParticles');
+  if (canvas) {
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+
+    function resizePopupCanvas() {
+      canvas.width = canvas.parentElement.offsetWidth;
+      canvas.height = canvas.parentElement.offsetHeight;
+    }
+
+    function createPopupParticles() {
+      particles = [];
+      const count = 30; // fewer particles for small box
+      const isDark = document.documentElement.classList.contains('dark');
+
+      for (let i = 0; i < count; i++) {
+        particles.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          size: Math.random() * 2.5 + 0.8,
+          speedY: Math.random() * 0.4 + 0.15,
+          speedX: (Math.random() - 0.5) * 0.3,
+          color: isDark 
+            ? (Math.random() > 0.5 ? 'rgba(0, 188, 242,' : 'rgba(80, 230, 160,') 
+            : (Math.random() > 0.5 ? 'rgba(0, 120, 200,' : 'rgba(60, 180, 140,'),
+          opacity: Math.random() * 0.4 + 0.15
+        });
+      }
+    }
+
+    function animatePopupParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      particles.forEach(p => {
+        p.y -= p.speedY;
+        p.x += p.speedX;
+
+        if (p.y < -10) {
+          p.y = canvas.height + 10;
+          p.x = Math.random() * canvas.width;
+        }
+        if (p.x < -10 || p.x > canvas.width + 10) p.x = Math.random() * canvas.width;
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fillStyle = p.color + p.opacity + ')';
+        ctx.fill();
+      });
+
+      requestAnimationFrame(animatePopupParticles);
+    }
+
+    // Init
+    resizePopupCanvas();
+    createPopupParticles();
+    animatePopupParticles();
+
+    // Resize handler
+    window.addEventListener('resize', () => {
+      resizePopupCanvas();
+      createPopupParticles();
+    });
+
+    // Update colors when theme changes
+    const observer = new MutationObserver(() => {
+      createPopupParticles();
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+  }
+});
 // --- Particle Background Logic ---
 const canvas = document.getElementById('networkCanvas');
 const ctx = canvas.getContext('2d');
