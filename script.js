@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Show popup after 800ms delay (on page load)
   setTimeout(() => {
     popup.classList.add('active');
-  }, 800);
+  }, 5000);
 
   // Close popup
   function closePopup() {
