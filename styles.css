@@ -1,19 +1,21 @@
+/* styles.css */
+
 /* Define Light Mode as Default in :root */
 :root {
-    --bg: #F8FAFC; /* Slate 50 */
+    --bg: #F8FAFC;
     --card: #FFFFFF;
-    --card-hover: #F1F5F9; /* Slate 100 */
-    --accent: #0078D4; /* Darker blue for contrast on white */
+    --card-hover: #F1F5F9;
+    --accent: #0078D4;
     --accent-light: #50E6A0;
     --accent-dark: #005A9E;
     --accent-glow: rgba(0, 120, 212, 0.4);
-    --muted: #64748B; /* Slate 500 */
-    --border: #E2E8F0; /* Slate 200 */
-    --text-main: #0F172A; /* Slate 900 */
+    --muted: #64748B;
+    --border: #E2E8F0;
+    --text-main: #0F172A;
     --nav-bg: rgba(248, 250, 252, 0.85);
 }
 
-/* Define Dark Mode under .dark class */
+/* Define Dark Mode */
 .dark {
     --bg: #050810;
     --card: #0c1220;
@@ -56,35 +58,60 @@ body {
     z-index: 0;
     pointer-events: none;
 }
+
+/* ===== POPUP BASE STYLES ===== */
 .popup-overlay {
-  opacity: 0;
-  pointer-events: none;
+    opacity: 0;
+    pointer-events: none;
 }
+
 .popup-overlay.active {
-  opacity: 1;
-  pointer-events: auto;
+    opacity: 1;
+    pointer-events: auto;
 }
+
 .popup-box {
-  opacity: 0;
-  transform: scale(0.85) translateY(40px);
+    opacity: 0;
+    transform: scale(0.85) translateY(40px);
 }
+
 .popup-overlay.active .popup-box {
-  opacity: 1;
-  transform: scale(1) translateY(0);
+    opacity: 1;
+    transform: scale(1) translateY(0);
 }
 
 /* Checkmark animation */
 @keyframes check {
-  0%   { stroke-dashoffset: 50; }
-  50%  { stroke-dashoffset: 0; }
-  100% { stroke-dashoffset: 0; }
+    0% { stroke-dashoffset: 50; }
+    50% { stroke-dashoffset: 0; }
+    100% { stroke-dashoffset: 0; }
 }
+
 .animate-check {
-  stroke-dasharray: 50;
-  stroke-dashoffset: 50;
-  animation: check 1.2s ease forwards;
+    stroke-dasharray: 50;
+    stroke-dashoffset: 50;
+    animation: check 1.2s ease forwards;
 }
-/* Glassmorphism Nav */
+
+/* ===== AUTH POPUP TAB STYLES ===== */
+.auth-tab {
+    color: var(--muted);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+.auth-tab.active {
+    color: var(--text-main);
+    background: var(--card);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.dark .auth-tab.active {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* ===== GLASSMORPHISM NAV ===== */
 .nav-glass {
     background: var(--nav-bg);
     backdrop-filter: blur(20px);
@@ -132,7 +159,7 @@ body {
     color: var(--accent);
 }
 
-/* Gradient Text */
+/* ===== GRADIENT TEXT ===== */
 .gradient-text {
     background: linear-gradient(135deg, var(--accent-dark) 0%, var(--accent) 50%, var(--accent-light) 100%);
     background-size: 200% auto;
@@ -147,7 +174,7 @@ body {
     100% { background-position: 200% center; }
 }
 
-/* Floating Shapes */
+/* ===== FLOATING SHAPES ===== */
 .floating-shape {
     position: absolute;
     border: 1px solid var(--border);
@@ -168,7 +195,7 @@ body {
     75% { transform: translate(-20px, -20px) rotate(-5deg); }
 }
 
-/* Reveal Animation */
+/* ===== REVEAL ANIMATION ===== */
 .reveal {
     opacity: 0;
     transform: translateY(50px);
@@ -186,7 +213,7 @@ body {
 .reveal-delay-4 { transition-delay: 0.4s; }
 .reveal-delay-5 { transition-delay: 0.5s; }
 
-/* Button Styles */
+/* ===== BUTTON STYLES ===== */
 .btn-primary {
     position: relative;
     background: linear-gradient(135deg, var(--accent-dark), var(--accent));
@@ -240,7 +267,7 @@ body {
     transform-origin: left;
 }
 
-/* --- 3D FEATURE CARDS --- */
+/* ===== 3D FEATURE CARDS ===== */
 .feature-container {
     perspective: 1000px;
 }
@@ -263,9 +290,7 @@ body {
     background: linear-gradient(135deg, var(--accent), transparent, var(--accent-light), transparent);
     background-size: 400% 400%;
     animation: borderRotate 4s linear infinite;
-    -webkit-mask: 
-        linear-gradient(#fff 0 0) content-box, 
-        linear-gradient(#fff 0 0);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
     opacity: 0;
@@ -317,7 +342,7 @@ body {
     display: inline-block;
 }
 
-/* Mobile Menu Animation */
+/* ===== MOBILE MENU ===== */
 .menu-overlay {
     position: fixed;
     inset: 0;
@@ -334,7 +359,6 @@ body {
     visibility: visible;
 }
 
-/* Mobile Menu Container */
 .mobile-menu {
     position: fixed;
     top: 0;
@@ -352,38 +376,9 @@ body {
     transform: translateX(0);
 }
 
-/* Inner Content */
 .menu-content {
     padding: 40px 30px;
     position: relative;
-}
-
-/* Close Button */
-.close-btn {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    font-size: 22px;
-    background: var(--bg);
-    color: var(--text-main);
-    border: none;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    cursor: pointer;
-    transition: 0.3s;
-}
-
-.close-btn:hover {
-    background: var(--card-hover);
-}
-
-/* Navigation */
-.menu-nav {
-    display: flex;
-    flex-direction: column;
-    gap: 25px;
-    margin-top: 60px;
 }
 
 /* Progress Bar */
@@ -400,13 +395,15 @@ body {
     100% { transform: scaleX(0); transform-origin: right; }
 }
 
-/* Focus States */
-a:focus-visible, button:focus-visible, input:focus-visible {
+/* ===== FOCUS STATES ===== */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 3px;
 }
 
-/* Scrollbar */
+/* ===== SCROLLBAR ===== */
 ::-webkit-scrollbar {
     width: 6px;
 }
@@ -424,7 +421,7 @@ a:focus-visible, button:focus-visible, input:focus-visible {
     background: var(--accent);
 }
 
-/* Reduced Motion */
+/* ===== REDUCED MOTION ===== */
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
         animation-duration: 0.01ms !important;
@@ -433,7 +430,7 @@ a:focus-visible, button:focus-visible, input:focus-visible {
     }
 }
 
-/* Responsive Adjustments */
+/* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
     .floating-shape { display: none; }
     
@@ -444,5 +441,19 @@ a:focus-visible, button:focus-visible, input:focus-visible {
     }
     .reveal-delay-5.flex .w-px {
         display: none;
+    }
+
+    .auth-popup-box {
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+}
+
+/* Small mobile adjustments */
+@media (max-width: 480px) {
+    .popup-box {
+        margin: 1rem;
+        max-height: 85vh;
+        overflow-y: auto;
     }
 }

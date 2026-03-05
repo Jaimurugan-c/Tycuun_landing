@@ -1,15 +1,15 @@
-// --- Theme Toggle Logic ---
+// script.js
+
+// ===== THEME TOGGLE LOGIC =====
 const themeToggleBtns = document.querySelectorAll('#themeToggle, #themeToggleMobile');
 const htmlElement = document.documentElement;
 
-// Check for saved theme preference or default to 'dark'
 const currentTheme = localStorage.getItem('theme') || 'dark';
 htmlElement.classList.toggle('dark', currentTheme === 'dark');
 
 function toggleTheme() {
     const isDark = htmlElement.classList.toggle('dark');
     localStorage.setItem('theme', isDark ? 'dark' : 'light');
-    // Re-initialize particles to update their colors for the new theme
     if (typeof createParticles === 'function') {
         createParticles();
     }
@@ -18,119 +18,243 @@ function toggleTheme() {
 themeToggleBtns.forEach(btn => {
     btn.addEventListener('click', toggleTheme);
 });
-// Popup logic
+
+// ===== WELCOME POPUP LOGIC =====
 document.addEventListener('DOMContentLoaded', () => {
-  const popup = document.getElementById('welcomePopup');
-  const closeBtn = document.getElementById('closePopup');
-  const form = document.getElementById('leadForm');
-  const formState = document.getElementById('formState');
-  const thankState = document.getElementById('thankYouState');
+    const welcomePopup = document.getElementById('welcomePopup');
+    const closePopupBtn = document.getElementById('closePopup');
+    const leadForm = document.getElementById('leadForm');
+    const formState = document.getElementById('formState');
+    const thankYouState = document.getElementById('thankYouState');
 
-  // Show popup after 800ms delay (on page load)
-  setTimeout(() => {
-    popup.classList.add('active');
-  }, 3000);
+    // Show welcome popup after 3 seconds
+    setTimeout(() => {
+        welcomePopup.classList.add('active');
+    }, 3000);
 
-  // Close popup
-  function closePopup() {
-    popup.classList.remove('active');
-  }
+    function closeWelcomePopup() {
+        welcomePopup.classList.remove('active');
+    }
 
-  closeBtn.addEventListener('click', closePopup);
+    closePopupBtn.addEventListener('click', closeWelcomePopup);
 
-  // Optional: close when clicking outside the box
-  popup.addEventListener('click', (e) => {
-    if (e.target === popup) closePopup();
-  });
+    welcomePopup.addEventListener('click', (e) => {
+        if (e.target === welcomePopup) closeWelcomePopup();
+    });
 
-  // Form submission
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
+    leadForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        formState.classList.add('hidden');
+        thankYouState.classList.remove('hidden');
+        setTimeout(closeWelcomePopup, 1000);
+    });
+
+    // Welcome popup particles
+    const popupCanvas = document.getElementById('popupParticles');
+    if (popupCanvas) {
+        initPopupParticles(popupCanvas);
+    }
+});
+
+// ===== AUTH POPUP LOGIC =====
+const authPopup = document.getElementById('authPopup');
+const closeAuthPopupBtn = document.getElementById('closeAuthPopup');
+const signInTab = document.getElementById('signInTab');
+const signUpTab = document.getElementById('signUpTab');
+const signInForm = document.getElementById('signInForm');
+const signUpForm = document.getElementById('signUpForm');
+const openAuthPopupBtn = document.getElementById('openAuthPopup');
+const mobileSignInBtn = document.getElementById('mobileSignInBtn');
+const heroSignInBtn = document.getElementById('heroSignInBtn');
+
+// Open auth popup
+function openAuthModal() {
+    authPopup.classList.add('active');
+    document.body.style.overflow = 'hidden';
     
-    // Here you can send data to backend (fetch/axios) if needed
-    // For demo we just show thank you
+    // Close mobile menu if open
+    const mobileMenu = document.getElementById('mobileMenu');
+    const menuOverlay = document.getElementById('menuOverlay');
+    if (mobileMenu) mobileMenu.classList.remove('open');
+    if (menuOverlay) menuOverlay.classList.remove('active');
+}
 
-    formState.classList.add('hidden');
-    thankState.classList.remove('hidden');
+function closeAuthModal() {
+    authPopup.classList.remove('active');
+    document.body.style.overflow = 'auto';
+}
 
-    // Auto close after 3 seconds
-    setTimeout(closePopup, 1000);
-  });
+// Event listeners for opening auth popup
+if (openAuthPopupBtn) openAuthPopupBtn.addEventListener('click', openAuthModal);
+if (mobileSignInBtn) mobileSignInBtn.addEventListener('click', openAuthModal);
+if (heroSignInBtn) heroSignInBtn.addEventListener('click', openAuthModal);
 
-  // Simple particles inside popup (similar style to your main canvas)
-  const canvas = document.getElementById('popupParticles');
-  if (canvas) {
+// Close auth popup
+if (closeAuthPopupBtn) {
+    closeAuthPopupBtn.addEventListener('click', closeAuthModal);
+}
+
+// Close on overlay click
+if (authPopup) {
+    authPopup.addEventListener('click', (e) => {
+        if (e.target === authPopup) closeAuthModal();
+    });
+}
+
+// Tab switching
+function switchTab(tab) {
+    if (tab === 'signin') {
+        signInTab.classList.add('active');
+        signUpTab.classList.remove('active');
+        signInForm.classList.remove('hidden');
+        signUpForm.classList.add('hidden');
+    } else {
+        signUpTab.classList.add('active');
+        signInTab.classList.remove('active');
+        signUpForm.classList.remove('hidden');
+        signInForm.classList.add('hidden');
+    }
+}
+
+if (signInTab) signInTab.addEventListener('click', () => switchTab('signin'));
+if (signUpTab) signUpTab.addEventListener('click', () => switchTab('signup'));
+
+// Toggle password visibility
+function togglePassword(inputId) {
+    const input = document.getElementById(inputId);
+    if (input) {
+        input.type = input.type === 'password' ? 'text' : 'password';
+    }
+}
+
+// Password strength indicator
+const signUpPasswordInput = document.getElementById('signUpPassword');
+if (signUpPasswordInput) {
+    signUpPasswordInput.addEventListener('input', (e) => {
+        const password = e.target.value;
+        const strength = calculatePasswordStrength(password);
+        updateStrengthIndicator(strength);
+    });
+}
+
+function calculatePasswordStrength(password) {
+    let strength = 0;
+    if (password.length >= 8) strength++;
+    if (/[A-Z]/.test(password)) strength++;
+    if (/[0-9]/.test(password)) strength++;
+    if (/[^A-Za-z0-9]/.test(password)) strength++;
+    return strength;
+}
+
+function updateStrengthIndicator(strength) {
+    const colors = ['#ef4444', '#f97316', '#eab308', '#22c55e'];
+    for (let i = 1; i <= 4; i++) {
+        const bar = document.getElementById(`strength${i}`);
+        if (bar) {
+            bar.style.background = i <= strength ? colors[strength - 1] : 'var(--border)';
+        }
+    }
+}
+
+// Form handlers
+function handleSignIn(e) {
+    e.preventDefault();
+    const email = document.getElementById('signInEmail').value;
+    const password = document.getElementById('signInPassword').value;
+    
+    // Add your sign in logic here
+    console.log('Sign In:', { email, password });
+    alert('Sign In successful! (Demo)');
+    closeAuthModal();
+}
+
+function handleSignUp(e) {
+    e.preventDefault();
+    const name = document.getElementById('signUpName').value;
+    const email = document.getElementById('signUpEmail').value;
+    const password = document.getElementById('signUpPassword').value;
+    
+    // Add your sign up logic here
+    console.log('Sign Up:', { name, email, password });
+    alert('Account created successfully! (Demo)');
+    closeAuthModal();
+}
+
+// Auth popup particles
+const authCanvas = document.getElementById('authParticles');
+if (authCanvas) {
+    initPopupParticles(authCanvas);
+}
+
+function initPopupParticles(canvas) {
     const ctx = canvas.getContext('2d');
     let particles = [];
 
-    function resizePopupCanvas() {
-      canvas.width = canvas.parentElement.offsetWidth;
-      canvas.height = canvas.parentElement.offsetHeight;
+    function resizeCanvas() {
+        canvas.width = canvas.parentElement.offsetWidth;
+        canvas.height = canvas.parentElement.offsetHeight;
     }
 
-    function createPopupParticles() {
-      particles = [];
-      const count = 30; // fewer particles for small box
-      const isDark = document.documentElement.classList.contains('dark');
+    function createParticles() {
+        particles = [];
+        const count = 30;
+        const isDark = document.documentElement.classList.contains('dark');
 
-      for (let i = 0; i < count; i++) {
-        particles.push({
-          x: Math.random() * canvas.width,
-          y: Math.random() * canvas.height,
-          size: Math.random() * 2.5 + 0.8,
-          speedY: Math.random() * 0.4 + 0.15,
-          speedX: (Math.random() - 0.5) * 0.3,
-          color: isDark 
-            ? (Math.random() > 0.5 ? 'rgba(0, 188, 242,' : 'rgba(80, 230, 160,') 
-            : (Math.random() > 0.5 ? 'rgba(0, 120, 200,' : 'rgba(60, 180, 140,'),
-          opacity: Math.random() * 0.4 + 0.15
-        });
-      }
-    }
-
-    function animatePopupParticles() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      particles.forEach(p => {
-        p.y -= p.speedY;
-        p.x += p.speedX;
-
-        if (p.y < -10) {
-          p.y = canvas.height + 10;
-          p.x = Math.random() * canvas.width;
+        for (let i = 0; i < count; i++) {
+            particles.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                size: Math.random() * 2.5 + 0.8,
+                speedY: Math.random() * 0.4 + 0.15,
+                speedX: (Math.random() - 0.5) * 0.3,
+                color: isDark 
+                    ? (Math.random() > 0.5 ? 'rgba(0, 188, 242,' : 'rgba(80, 230, 160,') 
+                    : (Math.random() > 0.5 ? 'rgba(0, 120, 200,' : 'rgba(60, 180, 140,'),
+                opacity: Math.random() * 0.4 + 0.15
+            });
         }
-        if (p.x < -10 || p.x > canvas.width + 10) p.x = Math.random() * canvas.width;
-
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fillStyle = p.color + p.opacity + ')';
-        ctx.fill();
-      });
-
-      requestAnimationFrame(animatePopupParticles);
     }
 
-    // Init
-    resizePopupCanvas();
-    createPopupParticles();
-    animatePopupParticles();
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Resize handler
+        particles.forEach(p => {
+            p.y -= p.speedY;
+            p.x += p.speedX;
+
+            if (p.y < -10) {
+                p.y = canvas.height + 10;
+                p.x = Math.random() * canvas.width;
+            }
+            if (p.x < -10 || p.x > canvas.width + 10) p.x = Math.random() * canvas.width;
+
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fillStyle = p.color + p.opacity + ')';
+            ctx.fill();
+        });
+
+        requestAnimationFrame(animate);
+    }
+
+    resizeCanvas();
+    createParticles();
+    animate();
+
     window.addEventListener('resize', () => {
-      resizePopupCanvas();
-      createPopupParticles();
+        resizeCanvas();
+        createParticles();
     });
 
-    // Update colors when theme changes
     const observer = new MutationObserver(() => {
-      createPopupParticles();
+        createParticles();
     });
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-  }
-});
-// --- Particle Background Logic ---
+}
+
+// ===== PARTICLE BACKGROUND =====
 const canvas = document.getElementById('networkCanvas');
-const ctx = canvas.getContext('2d');
+const ctx = canvas ? canvas.getContext('2d') : null;
 let particles = [];
 let animationId = null;
 
@@ -141,14 +265,17 @@ function initCanvas() {
 }
 
 function resizeCanvas() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    if (canvas) {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
 }
 
 function createParticles() {
     particles = [];
-    const count = Math.floor(window.innerWidth / 20); // Density
-    // Adjust colors based on theme
+    if (!canvas) return;
+    
+    const count = Math.floor(window.innerWidth / 20);
     const isDark = htmlElement.classList.contains('dark');
     
     for (let i = 0; i < count; i++) {
@@ -156,9 +283,8 @@ function createParticles() {
             x: Math.random() * canvas.width,
             y: Math.random() * canvas.height,
             size: Math.random() * 2 + 0.5,
-            speedY: Math.random() * 0.3 + 0.1, // Rising speed
+            speedY: Math.random() * 0.3 + 0.1,
             speedX: (Math.random() - 0.5) * 0.2,
-            // Use darker particles for light mode, brighter for dark mode
             color: isDark 
                 ? (Math.random() > 0.5 ? 'rgba(0, 188, 242, ' : 'rgba(80, 230, 160, ')
                 : (Math.random() > 0.5 ? 'rgba(0, 100, 180, ' : 'rgba(50, 160, 120, '),
@@ -168,14 +294,14 @@ function createParticles() {
 }
 
 function animateParticles() {
+    if (!ctx || !canvas) return;
+    
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
     particles.forEach(p => {
-        // Move up
         p.y -= p.speedY;
         p.x += p.speedX;
 
-        // Reset if out of bounds
         if (p.y < -10) {
             p.y = canvas.height + 10;
             p.x = Math.random() * canvas.width;
@@ -183,7 +309,6 @@ function animateParticles() {
         if (p.x < -10) p.x = canvas.width + 10;
         if (p.x > canvas.width + 10) p.x = -10;
 
-        // Draw particle
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
         ctx.fillStyle = p.color + p.opacity + ')';
@@ -198,11 +323,10 @@ window.addEventListener('resize', () => {
     createParticles();
 });
 
-// --- 3D Tilt Effect for Feature Cards ---
+// ===== 3D TILT EFFECT =====
 const cards = document.querySelectorAll('.feature-card-3d');
 
 cards.forEach(card => {
-    // Mouse move listener for tilt
     card.addEventListener('mousemove', (e) => {
         if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
         
@@ -213,34 +337,31 @@ cards.forEach(card => {
         const centerX = rect.width / 2;
         const centerY = rect.height / 2;
         
-        const rotateX = ((y - centerY) / centerY) * -10; // Max rotation 10deg
+        const rotateX = ((y - centerY) / centerY) * -10;
         const rotateY = ((x - centerX) / centerX) * 10;
         
-        // Update CSS variables for the spotlight effect
         card.style.setProperty('--mouse-x', `${(x / rect.width) * 100}%`);
         card.style.setProperty('--mouse-y', `${(y / rect.height) * 100}%`);
         
         card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
     });
 
-    // Reset on mouse leave
     card.addEventListener('mouseleave', () => {
         card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
     });
 });
 
-// --- Mobile Menu ---
+// ===== MOBILE MENU =====
 const menuBtn = document.getElementById('menuBtn');
 const closeMenuBtn = document.getElementById('closeMenuBtn');
 const mobileMenu = document.getElementById('mobileMenu');
 const menuOverlay = document.getElementById('menuOverlay');
 
 if (menuBtn && mobileMenu && closeMenuBtn && menuOverlay) {
-
     menuBtn.addEventListener('click', () => {
         mobileMenu.classList.add('open');
         menuOverlay.classList.add('active');
-        document.body.style.overflow = 'hidden'; // prevent scroll
+        document.body.style.overflow = 'hidden';
     });
 
     function closeMenu() {
@@ -252,14 +373,13 @@ if (menuBtn && mobileMenu && closeMenuBtn && menuOverlay) {
     closeMenuBtn.addEventListener('click', closeMenu);
     menuOverlay.addEventListener('click', closeMenu);
 
-    // Close when clicking links
     const mobileLinks = mobileMenu.querySelectorAll('a');
     mobileLinks.forEach(link => {
         link.addEventListener('click', closeMenu);
     });
 }
 
-// --- Scroll Reveal ---
+// ===== SCROLL REVEAL =====
 function initScrollReveal() {
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
@@ -272,7 +392,7 @@ function initScrollReveal() {
     document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 }
 
-// --- Counter Animation ---
+// ===== COUNTER ANIMATION =====
 function initCounters() {
     const counters = document.querySelectorAll('.counter');
     const observer = new IntersectionObserver((entries) => {
@@ -298,18 +418,31 @@ function initCounters() {
     counters.forEach(c => observer.observe(c));
 }
 
-// --- Form ---
-const form = document.getElementById('signupForm');
+// ===== CTA FORM =====
+const ctaForm = document.getElementById('signupForm');
 const successMsg = document.getElementById('successMsg');
-if(form && successMsg) {
-    form.addEventListener('submit', (e) => {
+if (ctaForm && successMsg) {
+    ctaForm.addEventListener('submit', (e) => {
         e.preventDefault();
-        form.classList.add('hidden');
+        ctaForm.classList.add('hidden');
         successMsg.classList.remove('hidden');
     });
 }
 
-// Initialize everything
+// ===== KEYBOARD NAVIGATION =====
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        if (authPopup && authPopup.classList.contains('active')) {
+            closeAuthModal();
+        }
+        const welcomePopup = document.getElementById('welcomePopup');
+        if (welcomePopup && welcomePopup.classList.contains('active')) {
+            welcomePopup.classList.remove('active');
+        }
+    }
+});
+
+// ===== INITIALIZE =====
 document.addEventListener('DOMContentLoaded', () => {
     initCanvas();
     initScrollReveal();
