@@ -96,7 +96,10 @@ export default function AuthPopup({ isOpen, onClose }) {
       className={`popup-overlay fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm transition-opacity duration-500 ${isOpen ? 'active' : ''}`}
       onClick={handleOverlayClick}
     >
-      <div className="popup-box auth-popup-box relative bg-card rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden transform transition-all duration-500 border border-border">
+     <div className="popup-box auth-popup-box relative bg-card rounded-2xl shadow-2xl 
+  w-full max-w-md mx-4 
+  max-h-[90vh] overflow-y-auto         
+  border border-border">
         <canvas ref={canvasRef} className="absolute inset-0 pointer-events-none"></canvas>
         <div className="relative z-10 p-6 sm:p-8">
 
