@@ -1,19 +1,24 @@
 import { useState, useRef, useEffect } from 'react';
 import { useParticles } from '../hooks/useParticles';
 import { calculatePasswordStrength } from '../utils/passwordStrength';
+import { useAuth } from '../context/AuthContext';
 
 export default function AuthPopup({ isOpen, onClose }) {
   const [activeTab, setActiveTab] = useState('signin');
   const [signInPasswordVisible, setSignInPasswordVisible] = useState(false);
   const [signUpPasswordVisible, setSignUpPasswordVisible] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState(0);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const canvasRef = useRef(null);
+  const { loginUser, signupUser } = useAuth();
 
   useParticles(canvasRef, { popup: true });
 
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
+      setError('');
     } else {
       document.body.style.overflow = 'auto';
     }
@@ -32,20 +37,34 @@ export default function AuthPopup({ isOpen, onClose }) {
     if (e.target === e.currentTarget) onClose();
   };
 
-  const handleSignIn = (e) => {
+  const handleSignIn = async (e) => {
     e.preventDefault();
+    setError('');
+    setLoading(true);
     const formData = new FormData(e.target);
-    console.log('Sign In:', { email: formData.get('email'), password: formData.get('password') });
-    alert('Sign In successful! (Demo)');
-    onClose();
+    try {
+      await loginUser(formData.get('email'), formData.get('password'));
+      onClose();
+    } catch (err) {
+      setError(err.response?.data?.message || 'Sign in failed');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleSignUp = (e) => {
+  const handleSignUp = async (e) => {
     e.preventDefault();
+    setError('');
+    setLoading(true);
     const formData = new FormData(e.target);
-    console.log('Sign Up:', { name: formData.get('name'), email: formData.get('email'), password: formData.get('password') });
-    alert('Account created successfully! (Demo)');
-    onClose();
+    try {
+      await signupUser(formData.get('name'), formData.get('email'), formData.get('password'));
+      onClose();
+    } catch (err) {
+      setError(err.response?.data?.message || 'Sign up failed');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handlePasswordChange = (e) => {
@@ -107,13 +126,19 @@ export default function AuthPopup({ isOpen, onClose }) {
           <div className="flex bg-bg rounded-xl p-1 mb-6">
             <button
               className={`auth-tab flex-1 py-3 px-4 rounded-lg font-semibold text-sm transition-all ${activeTab === 'signin' ? 'active' : ''}`}
-              onClick={() => setActiveTab('signin')}
+              onClick={() => { setActiveTab('signin'); setError(''); }}
             >Sign In</button>
             <button
               className={`auth-tab flex-1 py-3 px-4 rounded-lg font-semibold text-sm transition-all ${activeTab === 'signup' ? 'active' : ''}`}
-              onClick={() => setActiveTab('signup')}
+              onClick={() => { setActiveTab('signup'); setError(''); }}
             >Sign Up</button>
           </div>
+
+          {error && (
+            <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-500 text-sm text-center">
+              {error}
+            </div>
+          )}
 
           {/* Sign In Form */}
           {activeTab === 'signin' && (
@@ -143,7 +168,7 @@ export default function AuthPopup({ isOpen, onClose }) {
                   </label>
                   <a href="#" className="text-sm text-accent hover:underline">Forgot password?</a>
                 </div>
-                <button type="submit" className="w-full btn-primary py-3.5 rounded-xl text-white font-semibold text-sm transition-all">Sign In</button>
+                <button type="submit" disabled={loading} className="w-full btn-primary py-3.5 rounded-xl text-white font-semibold text-sm transition-all disabled:opacity-50">{loading ? 'Signing in...' : 'Sign In'}</button>
               </form>
               <SocialButtons label="Or continue with" />
             </div>
@@ -187,7 +212,7 @@ export default function AuthPopup({ isOpen, onClose }) {
                   <input type="checkbox" id="terms" required className="w-4 h-4 mt-0.5 rounded border-border bg-bg accent-accent" />
                   <label htmlFor="terms" className="text-sm text-muted">I agree to the <a href="#" className="text-accent hover:underline">Terms of Service</a> and <a href="#" className="text-accent hover:underline">Privacy Policy</a></label>
                 </div>
-                <button type="submit" className="w-full btn-primary py-3.5 rounded-xl text-white font-semibold text-sm transition-all">Create Account</button>
+                <button type="submit" disabled={loading} className="w-full btn-primary py-3.5 rounded-xl text-white font-semibold text-sm transition-all disabled:opacity-50">{loading ? 'Creating...' : 'Create Account'}</button>
               </form>
               <SocialButtons label="Or sign up with" />
             </div>
