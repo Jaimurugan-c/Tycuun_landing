@@ -12,6 +12,8 @@ import Footer from './components/Footer';
 import WelcomePopup from './components/WelcomePopup';
 import AuthPopup from './components/AuthPopup';
 import Profile from './pages/Profile';
+import ProfileView from './pages/ProfileView';
+import EditProfile from './pages/EditProfile';
 
 function LandingPage({ onOpenAuth }) {
   return (
@@ -56,7 +58,9 @@ export default function App() {
 
       <Routes>
         <Route path="/" element={<LandingPage onOpenAuth={() => setAuthOpen(true)} />} />
-        <Route path="/profile" element={user ? <Profile /> : <Navigate to="/" replace />} />
+        <Route path="/profile" element={user ? <ProfileView /> : <Navigate to="/" replace />} />
+        <Route path="/profile/edit" element={user ? <EditProfile /> : <Navigate to="/" replace />} />
+        <Route path="/profile/:id" element={user ? <ProfileView /> : <Navigate to="/" replace />} />
       </Routes>
     </>
   );

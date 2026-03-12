@@ -30,8 +30,13 @@ const userSchema = new mongoose.Schema({
   education: [
     {
       school: { type: String, default: '' },
+      institution: { type: String, default: '' },
       degree: { type: String, default: '' },
       year: { type: String, default: '' },
+      startDate: { type: String, default: '' },
+      endDate: { type: String, default: '' },
+      description: { type: String, default: '' },
+      skills: { type: String, default: '' },
     },
   ],
   experience: [
@@ -39,8 +44,31 @@ const userSchema = new mongoose.Schema({
       company: { type: String, default: '' },
       role: { type: String, default: '' },
       years: { type: String, default: '' },
+      startDate: { type: String, default: '' },
+      endDate: { type: String, default: '' },
+      description: { type: String, default: '' },
+      skills: { type: String, default: '' },
     },
   ],
+  skills: [
+    {
+      type: String,
+      trim: true,
+    },
+  ],
+  certifications: [
+    {
+      name: { type: String, default: '' },
+      organization: { type: String, default: '' },
+      issueDate: { type: String, default: '' },
+      credentialId: { type: String, default: '' },
+      credentialUrl: { type: String, default: '' },
+    },
+  ],
+  profileImage: {
+    type: String,
+    default: '',
+  },
   createdAt: {
     type: Date,
     default: Date.now,

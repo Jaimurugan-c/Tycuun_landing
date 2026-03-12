@@ -11,7 +11,7 @@ export function AuthProvider({ children }) {
     const token = localStorage.getItem('token');
     if (token) {
       api.getProfile()
-        .then((res) => setUser(res.data))
+        .then((res) => setUser(res.data.user || res.data))
         .catch(() => {
           localStorage.removeItem('token');
         })
@@ -42,7 +42,7 @@ export function AuthProvider({ children }) {
 
   const refreshUser = async () => {
     const res = await api.getProfile();
-    setUser(res.data);
+    setUser(res.data.user || res.data);
   };
 
   return (
