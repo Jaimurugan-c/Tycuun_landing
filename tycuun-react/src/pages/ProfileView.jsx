@@ -86,6 +86,7 @@ export default function ProfileView() {
                 user={profile}
                 isOwner={isOwn}
                 onEdit={() => navigate('/profile/edit')}
+                onUpdated={handleUpdated}
               />
 
               <SkillsSection
