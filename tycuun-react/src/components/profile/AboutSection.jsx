@@ -33,7 +33,7 @@ export default function AboutSection({ bio, isOwner, onUpdated }) {
     'w-full px-4 py-2.5 bg-bg border border-border rounded-xl text-main placeholder-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 transition-all text-sm resize-none';
 
   return (
-    <div className="bg-card border border-border rounded-2xl p-6 transition-colors">
+    <div className="bg-card border border-border rounded-2xl p-6 transition-colors shadow-lg shadow-black/5">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <svg

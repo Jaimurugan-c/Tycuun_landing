@@ -46,6 +46,7 @@ const userSchema = new mongoose.Schema({
       years: { type: String, default: '' },
       startDate: { type: String, default: '' },
       endDate: { type: String, default: '' },
+      currentWorking: { type: Boolean, default: false },
       description: { type: String, default: '' },
       skills: { type: String, default: '' },
     },
@@ -63,6 +64,7 @@ const userSchema = new mongoose.Schema({
       issueDate: { type: String, default: '' },
       credentialId: { type: String, default: '' },
       credentialUrl: { type: String, default: '' },
+      description: { type: String, default: '' },
     },
   ],
   profileImage: {

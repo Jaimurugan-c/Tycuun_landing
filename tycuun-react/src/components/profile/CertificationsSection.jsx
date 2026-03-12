@@ -14,6 +14,14 @@ import * as api from '../../services/api';
 const INPUT_CLASS =
   'w-full px-4 py-2.5 bg-bg border border-border rounded-xl text-main placeholder-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 transition-all text-sm';
 
+/** Format "2023-04-01" → "Apr 2023" */
+function fmtDate(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr + 'T00:00:00');
+  if (isNaN(d.getTime())) return dateStr;
+  return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+}
+
 export default function CertificationsSection({
   certifications = [],
   isOwner,
@@ -30,12 +38,13 @@ export default function CertificationsSection({
     issueDate: '',
     credentialId: '',
     credentialUrl: '',
+    description: '',
   });
 
   const startEdit = (i) => {
     setEditingIndex(i);
     setAdding(false);
-    setDraft({ ...certifications[i] });
+    setDraft({ ...blank(), ...certifications[i] });
   };
 
   const startAdd = () => {
@@ -59,11 +68,8 @@ export default function CertificationsSection({
     setSaving(true);
     try {
       const updated = [...certifications];
-      if (adding) {
-        updated.push(draft);
-      } else if (editingIndex !== null) {
-        updated[editingIndex] = draft;
-      }
+      if (adding) updated.push(draft);
+      else if (editingIndex !== null) updated[editingIndex] = draft;
       await api.updateProfile({ certifications: updated });
       onUpdated?.();
       cancel();
@@ -78,8 +84,9 @@ export default function CertificationsSection({
     if (!confirm('Delete this certification?')) return;
     setSaving(true);
     try {
-      const updated = certifications.filter((_, idx) => idx !== i);
-      await api.updateProfile({ certifications: updated });
+      await api.updateProfile({
+        certifications: certifications.filter((_, idx) => idx !== i),
+      });
       onUpdated?.();
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to delete');
@@ -91,7 +98,8 @@ export default function CertificationsSection({
   const isEditing = editingIndex !== null || adding;
 
   const renderForm = () => (
-    <div className="p-4 bg-bg rounded-xl border border-accent/30 space-y-4 mt-4">
+    <div className="p-5 bg-bg rounded-xl border border-accent/30 space-y-4 mt-4">
+      {/* Name + Organization */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-xs font-medium text-muted mb-1.5">
@@ -117,11 +125,11 @@ export default function CertificationsSection({
           />
         </div>
       </div>
+
+      {/* Issue Date + Credential ID */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs font-medium text-muted mb-1.5">
-            Issue Date
-          </label>
+          <label className="block text-xs font-medium text-muted mb-1.5">Issue Date</label>
           <input
             type="date"
             value={draft.issueDate}
@@ -130,9 +138,7 @@ export default function CertificationsSection({
           />
         </div>
         <div>
-          <label className="block text-xs font-medium text-muted mb-1.5">
-            Credential ID
-          </label>
+          <label className="block text-xs font-medium text-muted mb-1.5">Credential ID</label>
           <input
             value={draft.credentialId}
             onChange={(e) => handleField('credentialId', e.target.value)}
@@ -141,10 +147,10 @@ export default function CertificationsSection({
           />
         </div>
       </div>
+
+      {/* Credential URL */}
       <div>
-        <label className="block text-xs font-medium text-muted mb-1.5">
-          Credential URL
-        </label>
+        <label className="block text-xs font-medium text-muted mb-1.5">Credential URL</label>
         <input
           value={draft.credentialUrl}
           onChange={(e) => handleField('credentialUrl', e.target.value)}
@@ -152,6 +158,20 @@ export default function CertificationsSection({
           className={INPUT_CLASS}
         />
       </div>
+
+      {/* Description */}
+      <div>
+        <label className="block text-xs font-medium text-muted mb-1.5">Description</label>
+        <textarea
+          value={draft.description}
+          onChange={(e) => handleField('description', e.target.value)}
+          rows={3}
+          placeholder="What this certification covers..."
+          className={INPUT_CLASS + ' resize-none'}
+        />
+      </div>
+
+      {/* Actions */}
       <div className="flex items-center justify-end gap-2 pt-1">
         <button
           onClick={cancel}
@@ -165,11 +185,7 @@ export default function CertificationsSection({
           disabled={saving}
           className="btn-primary inline-flex items-center gap-2 text-white font-semibold px-4 py-2 rounded-lg text-sm disabled:opacity-50"
         >
-          {saving ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <Check className="w-4 h-4" />
-          )}
+          {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
           {adding ? 'Add' : 'Save'}
         </button>
       </div>
@@ -177,14 +193,12 @@ export default function CertificationsSection({
   );
 
   return (
-    <div className="bg-card border border-border rounded-2xl p-6 transition-colors">
+    <div className="bg-card border border-border rounded-2xl p-6 transition-colors shadow-lg shadow-black/5">
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2">
           <Award className="w-5 h-5 text-accent" />
-          <h2 className="font-display font-semibold text-lg text-main">
-            Certifications
-          </h2>
+          <h2 className="font-display font-semibold text-lg text-main">Certifications</h2>
           {certifications.length > 0 && (
             <span className="text-xs bg-accent/10 text-accent px-2 py-0.5 rounded-full font-medium">
               {certifications.length}
@@ -201,14 +215,13 @@ export default function CertificationsSection({
         )}
       </div>
 
-      {/* Add form at top */}
       {adding && renderForm()}
 
-      {/* List */}
       {certifications.length > 0 ? (
         <div className={`space-y-5 ${adding ? 'mt-5' : ''}`}>
           {certifications.map((cert, i) => {
             const isThisEditing = editingIndex === i;
+            const issueDateFmt = fmtDate(cert.issueDate);
 
             return (
               <div key={cert._id || i}>
@@ -255,17 +268,24 @@ export default function CertificationsSection({
                         )}
                       </div>
 
+                      {/* Meta line */}
                       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1">
-                        {cert.issueDate && (
-                          <p className="text-muted text-xs">Issued {cert.issueDate}</p>
+                        {issueDateFmt && (
+                          <p className="text-muted text-xs">Issued {issueDateFmt}</p>
                         )}
                         {cert.credentialId && (
-                          <p className="text-muted text-xs">
-                            ID: {cert.credentialId}
-                          </p>
+                          <p className="text-muted text-xs">ID: {cert.credentialId}</p>
                         )}
                       </div>
 
+                      {/* Description */}
+                      {cert.description && (
+                        <p className="text-muted text-sm mt-2 leading-relaxed whitespace-pre-wrap">
+                          {cert.description}
+                        </p>
+                      )}
+
+                      {/* Credential link */}
                       {cert.credentialUrl && (
                         <a
                           href={cert.credentialUrl}

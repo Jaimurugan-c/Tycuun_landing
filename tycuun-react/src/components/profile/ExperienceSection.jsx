@@ -6,20 +6,45 @@ import * as api from '../../services/api';
 const INPUT_CLASS =
   'w-full px-4 py-2.5 bg-bg border border-border rounded-xl text-main placeholder-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 transition-all text-sm';
 
+const DISABLED_CLASS =
+  'w-full px-4 py-2.5 bg-bg border border-border rounded-xl text-muted placeholder-muted text-sm opacity-50 cursor-not-allowed';
+
+/** Format "2022-01-15" → "Jan 2022" */
+function fmtDate(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr + 'T00:00:00');
+  if (isNaN(d.getTime())) return dateStr;
+  return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+}
+
 function formatDateRange(exp) {
-  if (exp.startDate && exp.endDate) return `${exp.startDate} – ${exp.endDate}`;
-  if (exp.startDate) return `${exp.startDate} – Present`;
+  const start = fmtDate(exp.startDate);
+  if (exp.currentWorking) return start ? `${start} — Present` : 'Present';
+  const end = fmtDate(exp.endDate);
+  if (start && end) return `${start} — ${end}`;
+  if (start) return `${start} — Present`;
   if (exp.years) return exp.years;
   return '';
 }
 
+/** Calculate duration like "2 yrs 3 mos" */
+function calcDuration(exp) {
+  if (!exp.startDate) return '';
+  const start = new Date(exp.startDate + 'T00:00:00');
+  const end = exp.currentWorking || !exp.endDate ? new Date() : new Date(exp.endDate + 'T00:00:00');
+  if (isNaN(start.getTime()) || isNaN(end.getTime())) return '';
+  let months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
+  if (months < 0) months = 0;
+  const yrs = Math.floor(months / 12);
+  const mos = months % 12;
+  const parts = [];
+  if (yrs > 0) parts.push(`${yrs} yr${yrs > 1 ? 's' : ''}`);
+  if (mos > 0) parts.push(`${mos} mo${mos > 1 ? 's' : ''}`);
+  return parts.join(' ') || '< 1 mo';
+}
+
 function parseSkills(s) {
-  return s
-    ? s
-        .split(',')
-        .map((x) => x.trim())
-        .filter(Boolean)
-    : [];
+  return s ? s.split(',').map((x) => x.trim()).filter(Boolean) : [];
 }
 
 export default function ExperienceSection({ experience = [], isOwner, onUpdated }) {
@@ -34,6 +59,7 @@ export default function ExperienceSection({ experience = [], isOwner, onUpdated 
     years: '',
     startDate: '',
     endDate: '',
+    currentWorking: false,
     description: '',
     skills: '',
   });
@@ -41,7 +67,10 @@ export default function ExperienceSection({ experience = [], isOwner, onUpdated 
   const startEdit = (i) => {
     setEditingIndex(i);
     setAdding(false);
-    setDraft({ ...experience[i] });
+    setDraft({
+      ...experience[i],
+      currentWorking: experience[i].currentWorking || false,
+    });
   };
 
   const startAdd = () => {
@@ -57,7 +86,14 @@ export default function ExperienceSection({ experience = [], isOwner, onUpdated 
   };
 
   const handleField = (field, value) => {
-    setDraft((d) => ({ ...d, [field]: value }));
+    setDraft((d) => {
+      const updated = { ...d, [field]: value };
+      // If checking "currentWorking", clear endDate
+      if (field === 'currentWorking' && value) {
+        updated.endDate = '';
+      }
+      return updated;
+    });
   };
 
   const save = async () => {
@@ -66,19 +102,15 @@ export default function ExperienceSection({ experience = [], isOwner, onUpdated 
       const updated = [...experience];
       const entry = {
         ...draft,
-        years:
-          draft.startDate && draft.endDate
-            ? `${draft.startDate} – ${draft.endDate}`
-            : draft.startDate
+        years: draft.startDate
+          ? draft.currentWorking || !draft.endDate
             ? `${draft.startDate} – Present`
-            : draft.years,
+            : `${draft.startDate} – ${draft.endDate}`
+          : draft.years,
       };
 
-      if (adding) {
-        updated.push(entry);
-      } else if (editingIndex !== null) {
-        updated[editingIndex] = entry;
-      }
+      if (adding) updated.push(entry);
+      else if (editingIndex !== null) updated[editingIndex] = entry;
 
       await api.updateProfile({ experience: updated });
       onUpdated?.();
@@ -94,8 +126,7 @@ export default function ExperienceSection({ experience = [], isOwner, onUpdated 
     if (!confirm('Delete this experience?')) return;
     setSaving(true);
     try {
-      const updated = experience.filter((_, idx) => idx !== i);
-      await api.updateProfile({ experience: updated });
+      await api.updateProfile({ experience: experience.filter((_, idx) => idx !== i) });
       onUpdated?.();
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to delete');
@@ -107,15 +138,17 @@ export default function ExperienceSection({ experience = [], isOwner, onUpdated 
   const isEditing = editingIndex !== null || adding;
 
   const renderForm = () => (
-    <div className="p-4 bg-bg rounded-xl border border-accent/30 space-y-4 mt-4">
+    <div className="p-5 bg-bg rounded-xl border border-accent/30 space-y-4 mt-4">
+      {/* Company + Role */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs font-medium text-muted mb-1.5">Company</label>
+          <label className="block text-xs font-medium text-muted mb-1.5">Company Name</label>
           <input
             value={draft.company}
             onChange={(e) => handleField('company', e.target.value)}
             placeholder="e.g. Google"
             className={INPUT_CLASS}
+            autoFocus
           />
         </div>
         <div>
@@ -128,6 +161,8 @@ export default function ExperienceSection({ experience = [], isOwner, onUpdated 
           />
         </div>
       </div>
+
+      {/* Dates + Currently Working */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-xs font-medium text-muted mb-1.5">Start Date</label>
@@ -144,21 +179,45 @@ export default function ExperienceSection({ experience = [], isOwner, onUpdated 
             type="date"
             value={draft.endDate}
             onChange={(e) => handleField('endDate', e.target.value)}
-            className={INPUT_CLASS}
+            disabled={draft.currentWorking}
+            className={draft.currentWorking ? DISABLED_CLASS : INPUT_CLASS}
           />
-          <p className="text-[11px] text-muted mt-1">Leave empty if current</p>
         </div>
       </div>
+
+      {/* Currently Working checkbox */}
+      <label className="flex items-center gap-2.5 cursor-pointer select-none group">
+        <div className="relative">
+          <input
+            type="checkbox"
+            checked={draft.currentWorking}
+            onChange={(e) => handleField('currentWorking', e.target.checked)}
+            className="sr-only peer"
+          />
+          <div className="w-5 h-5 rounded-md border-2 border-border bg-bg peer-checked:bg-accent peer-checked:border-accent transition-all flex items-center justify-center">
+            {draft.currentWorking && (
+              <Check className="w-3.5 h-3.5 text-white" />
+            )}
+          </div>
+        </div>
+        <span className="text-sm text-muted group-hover:text-main transition-colors">
+          I currently work here
+        </span>
+      </label>
+
+      {/* Description */}
       <div>
         <label className="block text-xs font-medium text-muted mb-1.5">Description</label>
         <textarea
           value={draft.description}
           onChange={(e) => handleField('description', e.target.value)}
           rows={3}
-          placeholder="Describe your responsibilities..."
+          placeholder="Describe your responsibilities and achievements..."
           className={INPUT_CLASS + ' resize-none'}
         />
       </div>
+
+      {/* Skills */}
       <div>
         <label className="block text-xs font-medium text-muted mb-1.5">Skills</label>
         <SkillsInput
@@ -166,6 +225,8 @@ export default function ExperienceSection({ experience = [], isOwner, onUpdated 
           onChange={(val) => handleField('skills', val)}
         />
       </div>
+
+      {/* Actions */}
       <div className="flex items-center justify-end gap-2 pt-1">
         <button
           onClick={cancel}
@@ -187,7 +248,7 @@ export default function ExperienceSection({ experience = [], isOwner, onUpdated 
   );
 
   return (
-    <div className="bg-card border border-border rounded-2xl p-6 transition-colors">
+    <div className="bg-card border border-border rounded-2xl p-6 transition-colors shadow-lg shadow-black/5">
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2">
@@ -204,14 +265,13 @@ export default function ExperienceSection({ experience = [], isOwner, onUpdated 
         )}
       </div>
 
-      {/* Add form at top */}
       {adding && renderForm()}
 
-      {/* List */}
       {experience.length > 0 ? (
         <div className={`space-y-5 ${adding ? 'mt-5' : ''}`}>
           {experience.map((item, i) => {
             const dateRange = formatDateRange(item);
+            const duration = calcDuration(item);
             const skills = parseSkills(item.skills);
             const isThisEditing = editingIndex === i;
 
@@ -222,9 +282,7 @@ export default function ExperienceSection({ experience = [], isOwner, onUpdated 
                 ) : (
                   <div
                     className={`group flex gap-4 ${
-                      i < experience.length - 1
-                        ? 'pb-5 border-b border-border/50'
-                        : ''
+                      i < experience.length - 1 ? 'pb-5 border-b border-border/50' : ''
                     }`}
                   >
                     <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -257,9 +315,30 @@ export default function ExperienceSection({ experience = [], isOwner, onUpdated 
                           </div>
                         )}
                       </div>
-                      {dateRange && (
-                        <p className="text-muted text-xs mt-0.5">{dateRange}</p>
+
+                      {/* Date range + duration */}
+                      {(dateRange || duration) && (
+                        <div className="flex items-center gap-2 mt-0.5">
+                          {dateRange && (
+                            <p className="text-muted text-xs">{dateRange}</p>
+                          )}
+                          {duration && (
+                            <>
+                              <span className="text-border text-xs">·</span>
+                              <p className="text-muted text-xs">{duration}</p>
+                            </>
+                          )}
+                        </div>
                       )}
+
+                      {/* "Present" badge for current roles */}
+                      {item.currentWorking && (
+                        <span className="inline-flex items-center gap-1 mt-1.5 px-2 py-0.5 bg-accent/10 text-accent text-[11px] font-semibold rounded-md">
+                          <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+                          Currently Working
+                        </span>
+                      )}
+
                       {item.description && (
                         <p className="text-muted text-sm mt-2 leading-relaxed whitespace-pre-wrap">
                           {item.description}

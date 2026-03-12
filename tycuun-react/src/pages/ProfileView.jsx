@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Briefcase, GraduationCap, Award, Sparkles, Calendar } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import * as api from '../services/api';
 import ProfileHeader from '../components/profile/ProfileHeader';
@@ -59,7 +59,7 @@ export default function ProfileView() {
   if (error) {
     return (
       <div className="min-h-screen pt-24 flex items-center justify-center">
-        <div className="bg-card border border-border rounded-2xl p-8 text-center max-w-md">
+        <div className="bg-card border border-border rounded-2xl p-8 text-center max-w-md shadow-lg shadow-black/5">
           <p className="text-red-500 font-medium mb-2">Error</p>
           <p className="text-muted text-sm">{error}</p>
         </div>
@@ -67,67 +67,112 @@ export default function ProfileView() {
     );
   }
 
+  const stats = [
+    {
+      icon: Briefcase,
+      label: 'Experience',
+      value: profile?.experience?.length || 0,
+    },
+    {
+      icon: GraduationCap,
+      label: 'Education',
+      value: profile?.education?.length || 0,
+    },
+    {
+      icon: Sparkles,
+      label: 'Skills',
+      value: profile?.skills?.length || 0,
+    },
+    {
+      icon: Award,
+      label: 'Certifications',
+      value: profile?.certifications?.length || 0,
+    },
+  ];
+
   return (
     <div className="min-h-screen pt-24 pb-16 px-4">
       <div className="max-w-5xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column */}
+          {/* ─── Left Column ─── */}
           <div className="lg:col-span-1">
             <div className="lg:sticky lg:top-28 space-y-6">
+              {/* Profile Header Card */}
               <ProfileHeader
                 user={profile}
                 isOwner={isOwn}
                 onEdit={() => navigate('/profile/edit')}
               />
 
-              {/* Skills — left column on desktop */}
+              {/* Skills — sidebar on desktop */}
               <SkillsSection
                 skills={profile?.skills}
                 isOwner={isOwn}
                 onUpdated={handleUpdated}
               />
 
-              {/* Quick stats */}
-              <div className="bg-card border border-border rounded-2xl p-5 transition-colors hidden lg:block">
-                <h3 className="text-xs font-semibold text-muted uppercase tracking-wider mb-3">
-                  Profile Stats
+              {/* Stats card — desktop only */}
+              <div className="bg-card border border-border rounded-2xl p-5 transition-colors shadow-lg shadow-black/5 hidden lg:block">
+                <h3 className="text-xs font-semibold text-muted uppercase tracking-wider mb-4">
+                  Profile Overview
                 </h3>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted">Experience</span>
-                    <span className="text-main font-medium">
-                      {profile?.experience?.length || 0}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted">Education</span>
-                    <span className="text-main font-medium">
-                      {profile?.education?.length || 0}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted">Certifications</span>
-                    <span className="text-main font-medium">
-                      {profile?.certifications?.length || 0}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted">Member since</span>
-                    <span className="text-main font-medium">
-                      {profile?.createdAt
-                        ? new Date(profile.createdAt).toLocaleDateString('en-US', {
-                            month: 'short',
-                            year: 'numeric',
-                          })
-                        : '—'}
-                    </span>
+                <div className="space-y-3">
+                  {stats.map(({ icon: Icon, label, value }) => (
+                    <div
+                      key={label}
+                      className="flex items-center justify-between"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-7 h-7 rounded-lg bg-accent/10 flex items-center justify-center">
+                          <Icon className="w-3.5 h-3.5 text-accent" />
+                        </div>
+                        <span className="text-muted text-sm">{label}</span>
+                      </div>
+                      <span className="text-main font-semibold text-sm">
+                        {value}
+                      </span>
+                    </div>
+                  ))}
+
+                  {/* Divider */}
+                  <div className="border-t border-border/50 pt-3 mt-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-7 h-7 rounded-lg bg-accent/10 flex items-center justify-center">
+                          <Calendar className="w-3.5 h-3.5 text-accent" />
+                        </div>
+                        <span className="text-muted text-sm">Member since</span>
+                      </div>
+                      <span className="text-main font-medium text-sm">
+                        {profile?.createdAt
+                          ? new Date(profile.createdAt).toLocaleDateString(
+                              'en-US',
+                              { month: 'short', year: 'numeric' }
+                            )
+                          : '—'}
+                      </span>
+                    </div>
                   </div>
                 </div>
+              </div>
+
+              {/* Mobile stats — horizontal pills */}
+              <div className="flex flex-wrap gap-2 lg:hidden">
+                {stats.map(({ icon: Icon, label, value }) => (
+                  <div
+                    key={label}
+                    className="inline-flex items-center gap-2 px-3 py-2 bg-card border border-border rounded-xl text-sm"
+                  >
+                    <Icon className="w-3.5 h-3.5 text-accent" />
+                    <span className="text-muted">{label}</span>
+                    <span className="text-main font-semibold">{value}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
 
-          {/* Right Column */}
+          {/* ─── Right Column ─── */}
           <div className="lg:col-span-2 space-y-6">
             <AboutSection
               bio={profile?.bio}

@@ -64,7 +64,7 @@ export default function SkillsSection({ skills = [], isOwner, onUpdated }) {
   };
 
   return (
-    <div className="bg-card border border-border rounded-2xl p-5 transition-colors">
+    <div className="bg-card border border-border rounded-2xl p-5 transition-colors shadow-lg shadow-black/5">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">

@@ -1,8 +1,11 @@
-import { Trash2, Briefcase, ChevronUp, ChevronDown } from 'lucide-react';
+import { Trash2, Briefcase, ChevronUp, ChevronDown, Check } from 'lucide-react';
 import SkillsInput from './SkillsInput';
 
 const INPUT_CLASS =
   'w-full px-4 py-2.5 bg-bg border border-border rounded-xl text-main placeholder-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 transition-all text-sm';
+
+const DISABLED_CLASS =
+  'w-full px-4 py-2.5 bg-bg border border-border rounded-xl text-muted placeholder-muted text-sm opacity-50 cursor-not-allowed';
 
 export default function ExperienceForm({
   experience,
@@ -15,21 +18,27 @@ export default function ExperienceForm({
 }) {
   const handleChange = (field, value) => {
     onChange(index, field, value);
+    // If checking currentWorking, clear endDate
+    if (field === 'currentWorking' && value) {
+      onChange(index, 'endDate', '');
+    }
   };
 
-  // Build a summary label for the collapsed header
   const summaryLabel =
     experience.role && experience.company
       ? `${experience.role} at ${experience.company}`
       : experience.company || experience.role || `Experience ${index + 1}`;
 
-  const dateRange = [experience.startDate, experience.endDate]
+  const dateRange = [
+    experience.startDate,
+    experience.currentWorking ? 'Present' : experience.endDate,
+  ]
     .filter(Boolean)
     .join(' → ');
 
   return (
     <div className="bg-bg border border-border/50 rounded-xl overflow-hidden transition-all">
-      {/* Collapsed Header — always visible */}
+      {/* Header — always visible */}
       <button
         type="button"
         onClick={() => onToggleCollapse(index)}
@@ -41,18 +50,21 @@ export default function ExperienceForm({
           </div>
           <div className="min-w-0">
             <p className="text-sm font-semibold text-main truncate">{summaryLabel}</p>
-            {dateRange && (
-              <p className="text-xs text-muted truncate">{dateRange}</p>
-            )}
+            <div className="flex items-center gap-2">
+              {dateRange && <p className="text-xs text-muted truncate">{dateRange}</p>}
+              {experience.currentWorking && (
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-accent/10 text-accent text-[10px] font-semibold rounded">
+                  <span className="w-1 h-1 rounded-full bg-accent animate-pulse" />
+                  Current
+                </span>
+              )}
+            </div>
           </div>
         </div>
         <div className="flex items-center gap-1.5 flex-shrink-0">
           {total > 1 && (
             <span
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete(index);
-              }}
+              onClick={(e) => { e.stopPropagation(); onDelete(index); }}
               className="p-1.5 rounded-lg text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer"
             >
               <Trash2 className="w-3.5 h-3.5" />
@@ -66,15 +78,12 @@ export default function ExperienceForm({
         </div>
       </button>
 
-      {/* Expanded Form */}
+      {/* Expanded */}
       {!isCollapsed && (
         <div className="px-4 pb-5 pt-1 space-y-4 border-t border-border/30">
-          {/* Two-column row on desktop */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-muted mb-1.5">
-                Company Name
-              </label>
+              <label className="block text-xs font-medium text-muted mb-1.5">Company Name</label>
               <input
                 value={experience.company}
                 onChange={(e) => handleChange('company', e.target.value)}
@@ -83,9 +92,7 @@ export default function ExperienceForm({
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-muted mb-1.5">
-                Role
-              </label>
+              <label className="block text-xs font-medium text-muted mb-1.5">Role</label>
               <input
                 value={experience.role}
                 onChange={(e) => handleChange('role', e.target.value)}
@@ -95,12 +102,9 @@ export default function ExperienceForm({
             </div>
           </div>
 
-          {/* Date row */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-muted mb-1.5">
-                Start Date
-              </label>
+              <label className="block text-xs font-medium text-muted mb-1.5">Start Date</label>
               <input
                 type="date"
                 value={experience.startDate}
@@ -109,24 +113,39 @@ export default function ExperienceForm({
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-muted mb-1.5">
-                End Date
-              </label>
+              <label className="block text-xs font-medium text-muted mb-1.5">End Date</label>
               <input
                 type="date"
                 value={experience.endDate}
                 onChange={(e) => handleChange('endDate', e.target.value)}
-                className={INPUT_CLASS}
+                disabled={experience.currentWorking}
+                className={experience.currentWorking ? DISABLED_CLASS : INPUT_CLASS}
               />
-              <p className="text-[11px] text-muted mt-1">Leave empty if current role</p>
             </div>
           </div>
 
-          {/* Description */}
+          {/* Currently Working checkbox */}
+          <label className="flex items-center gap-2.5 cursor-pointer select-none group">
+            <div className="relative">
+              <input
+                type="checkbox"
+                checked={experience.currentWorking || false}
+                onChange={(e) => handleChange('currentWorking', e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="w-5 h-5 rounded-md border-2 border-border bg-bg peer-checked:bg-accent peer-checked:border-accent transition-all flex items-center justify-center">
+                {experience.currentWorking && (
+                  <Check className="w-3.5 h-3.5 text-white" />
+                )}
+              </div>
+            </div>
+            <span className="text-sm text-muted group-hover:text-main transition-colors">
+              I currently work here
+            </span>
+          </label>
+
           <div>
-            <label className="block text-xs font-medium text-muted mb-1.5">
-              Description
-            </label>
+            <label className="block text-xs font-medium text-muted mb-1.5">Description</label>
             <textarea
               value={experience.description}
               onChange={(e) => handleChange('description', e.target.value)}
@@ -136,11 +155,8 @@ export default function ExperienceForm({
             />
           </div>
 
-          {/* Skills */}
           <div>
-            <label className="block text-xs font-medium text-muted mb-1.5">
-              Skills
-            </label>
+            <label className="block text-xs font-medium text-muted mb-1.5">Skills</label>
             <SkillsInput
               value={experience.skills}
               onChange={(val) => handleChange('skills', val)}

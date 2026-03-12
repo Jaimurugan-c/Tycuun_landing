@@ -12,6 +12,7 @@ const EMPTY_EXPERIENCE = {
   years: '',
   startDate: '',
   endDate: '',
+  currentWorking: false,
   description: '',
   skills: '',
 };
@@ -54,6 +55,7 @@ export default function EditProfile() {
             years: e.years || '',
             startDate: e.startDate || '',
             endDate: e.endDate || '',
+            currentWorking: e.currentWorking || false,
             description: e.description || '',
             skills: e.skills || '',
           }))
@@ -98,12 +100,11 @@ export default function EditProfile() {
       const payload = {
         ...form,
         experience: form.experience.map((exp) => {
-          const years =
-            exp.startDate && exp.endDate
-              ? `${exp.startDate} – ${exp.endDate}`
-              : exp.startDate
+          const years = exp.startDate
+            ? exp.currentWorking || !exp.endDate
               ? `${exp.startDate} – Present`
-              : exp.years;
+              : `${exp.startDate} – ${exp.endDate}`
+            : exp.years;
           return { ...exp, years };
         }),
         education: form.education.map((edu) => {
