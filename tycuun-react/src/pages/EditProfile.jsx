@@ -4,6 +4,7 @@ import { ArrowLeft, Plus, Save, Loader2, Briefcase, GraduationCap } from 'lucide
 import { useAuth } from '../context/AuthContext';
 import ExperienceForm from '../components/profile/ExperienceForm';
 import EducationForm from '../components/profile/EducationForm';
+import { formatMonthYear, normalizeDateValue } from '../components/profile/DateDropdown';
 import * as api from '../services/api';
 
 const EMPTY_EXPERIENCE = {
@@ -24,6 +25,7 @@ const EMPTY_EDUCATION = {
   year: '',
   startDate: '',
   endDate: '',
+  currentlyStudying: false,
   description: '',
   skills: '',
 };
@@ -53,8 +55,8 @@ export default function EditProfile() {
             company: e.company || '',
             role: e.role || '',
             years: e.years || '',
-            startDate: e.startDate || '',
-            endDate: e.endDate || '',
+            startDate: normalizeDateValue(e.startDate) || '',
+            endDate: normalizeDateValue(e.endDate) || '',
             currentWorking: e.currentWorking || false,
             description: e.description || '',
             skills: e.skills || '',
@@ -67,8 +69,9 @@ export default function EditProfile() {
             school: e.school || e.institution || '',
             degree: e.degree || '',
             year: e.year || '',
-            startDate: e.startDate || '',
-            endDate: e.endDate || '',
+            startDate: normalizeDateValue(e.startDate) || '',
+            endDate: normalizeDateValue(e.endDate) || '',
+            currentlyStudying: e.currentlyStudying || false,
             description: e.description || '',
             skills: e.skills || '',
           }))
@@ -102,18 +105,17 @@ export default function EditProfile() {
         experience: form.experience.map((exp) => {
           const years = exp.startDate
             ? exp.currentWorking || !exp.endDate
-              ? `${exp.startDate} – Present`
-              : `${exp.startDate} – ${exp.endDate}`
+              ? `${formatMonthYear(exp.startDate)} – Present`
+              : `${formatMonthYear(exp.startDate)} – ${formatMonthYear(exp.endDate)}`
             : exp.years;
           return { ...exp, years };
         }),
         education: form.education.map((edu) => {
-          const year =
-            edu.startDate && edu.endDate
-              ? `${edu.startDate} – ${edu.endDate}`
-              : edu.startDate
-              ? `${edu.startDate} – Present`
-              : edu.year;
+          const year = edu.startDate
+            ? edu.currentlyStudying || !edu.endDate
+              ? `${formatMonthYear(edu.startDate)} – Present`
+              : `${formatMonthYear(edu.startDate)} – ${formatMonthYear(edu.endDate)}`
+            : edu.year;
           return { ...edu, school: edu.institution || edu.school, year };
         }),
       };

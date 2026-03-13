@@ -2,17 +2,11 @@ import { useState } from 'react';
 import { Award, Pencil, Trash2, Plus, X, Check, Loader2, ExternalLink } from 'lucide-react';
 import SkillsInput from './SkillsInput';
 import ReadMoreText from './ReadMoreText';
+import DateDropdown, { formatMonthYear, normalizeDateValue } from './DateDropdown';
 import * as api from '../../services/api';
 
 const INPUT_CLASS =
   'w-full px-4 py-3 bg-bg border border-border rounded-xl text-main text-sm md:text-base placeholder-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 transition-all';
-
-function fmtDate(dateStr) {
-  if (!dateStr) return '';
-  const d = new Date(dateStr + 'T00:00:00');
-  if (isNaN(d.getTime())) return dateStr;
-  return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-}
 
 export default function CertificationsSection({ certifications = [], isOwner, onUpdated }) {
   const [editingIndex, setEditingIndex] = useState(null);
@@ -22,7 +16,15 @@ export default function CertificationsSection({ certifications = [], isOwner, on
 
   const blank = () => ({ name: '', organization: '', issueDate: '', credentialId: '', credentialUrl: '', description: '', skills: '' });
 
-  const startEdit = (i) => { setEditingIndex(i); setAdding(false); setDraft({ ...blank(), ...certifications[i] }); };
+  const startEdit = (i) => {
+    setEditingIndex(i); setAdding(false);
+    const item = certifications[i];
+    setDraft({
+      ...blank(),
+      ...item,
+      issueDate: normalizeDateValue(item.issueDate),
+    });
+  };
   const startAdd = () => { setAdding(true); setEditingIndex(null); setDraft(blank()); };
   const cancel = () => { setEditingIndex(null); setAdding(false); setDraft(null); };
   const handleField = (field, value) => { setDraft((d) => ({ ...d, [field]: value })); };
@@ -63,10 +65,11 @@ export default function CertificationsSection({ certifications = [], isOwner, on
         </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-        <div>
-          <label className="block text-xs md:text-sm font-medium text-muted mb-1.5">Issue Date</label>
-          <input type="date" value={draft.issueDate} onChange={(e) => handleField('issueDate', e.target.value)} className={INPUT_CLASS} />
-        </div>
+        <DateDropdown
+          label="Issue Date"
+          value={draft.issueDate}
+          onChange={(val) => handleField('issueDate', val)}
+        />
         <div>
           <label className="block text-xs md:text-sm font-medium text-muted mb-1.5">Credential ID</label>
           <input value={draft.credentialId} onChange={(e) => handleField('credentialId', e.target.value)} placeholder="e.g. ABC123XYZ" className={INPUT_CLASS} />
@@ -117,7 +120,7 @@ export default function CertificationsSection({ certifications = [], isOwner, on
         <div className={`space-y-4 md:space-y-5 ${adding ? 'mt-5' : ''}`}>
           {certifications.map((cert, i) => {
             const isThisEditing = editingIndex === i;
-            const issueDateFmt = fmtDate(cert.issueDate);
+            const issueDateFmt = formatMonthYear(cert.issueDate);
 
             return (
               <div key={cert._id || i}>
@@ -145,17 +148,11 @@ export default function CertificationsSection({ certifications = [], isOwner, on
                           )}
                         </div>
                       </div>
-
                       {cert.description && (
                         <div className="mt-2 md:mt-3">
-                          <ReadMoreText
-                            text={cert.description}
-                            lines={3}
-                            className="text-muted text-sm md:text-base"
-                          />
+                          <ReadMoreText text={cert.description} lines={3} className="text-muted text-sm md:text-base" />
                         </div>
                       )}
-
                       {cert.skills && cert.skills.split(',').map((s) => s.trim()).filter(Boolean).length > 0 && (
                         <div className="flex flex-wrap gap-1.5 md:gap-2 mt-2.5 md:mt-3">
                           {cert.skills.split(',').map((s) => s.trim()).filter(Boolean).map((skill, si) => (
@@ -163,7 +160,6 @@ export default function CertificationsSection({ certifications = [], isOwner, on
                           ))}
                         </div>
                       )}
-
                       {cert.credentialUrl && (
                         <a href={cert.credentialUrl} target="_blank" rel="noopener noreferrer"
                           className="inline-flex items-center gap-1.5 mt-2 md:mt-3 text-accent text-xs md:text-sm font-medium hover:underline active:scale-95 transition-transform">

@@ -2,44 +2,36 @@ import { useState } from 'react';
 import { Briefcase, Pencil, Trash2, Plus, X, Check, Loader2 } from 'lucide-react';
 import SkillsInput from './SkillsInput';
 import ReadMoreText from './ReadMoreText';
+import DateDropdown, { formatDateRangeDisplay, formatMonthYear, normalizeDateValue } from './DateDropdown';
 import * as api from '../../services/api';
 
 const INPUT_CLASS =
   'w-full px-4 py-3 bg-bg border border-border rounded-xl text-main text-sm md:text-base placeholder-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 transition-all';
 
-const DISABLED_CLASS =
-  'w-full px-4 py-3 bg-bg border border-border rounded-xl text-muted text-sm md:text-base placeholder-muted opacity-50 cursor-not-allowed';
-
-function fmtDate(dateStr) {
-  if (!dateStr) return '';
-  const d = new Date(dateStr + 'T00:00:00');
-  if (isNaN(d.getTime())) return dateStr;
-  return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-}
-
-function formatDateRange(exp) {
-  const start = fmtDate(exp.startDate);
-  if (exp.currentWorking) return start ? `${start} — Present` : 'Present';
-  const end = fmtDate(exp.endDate);
-  if (start && end) return `${start} — ${end}`;
-  if (start) return `${start} — Present`;
-  if (exp.years) return exp.years;
-  return '';
-}
-
 function calcDuration(exp) {
   if (!exp.startDate) return '';
-  const start = new Date(exp.startDate + 'T00:00:00');
-  const end = exp.currentWorking || !exp.endDate ? new Date() : new Date(exp.endDate + 'T00:00:00');
-  if (isNaN(start.getTime()) || isNaN(end.getTime())) return '';
-  let months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
+  const parts = exp.startDate.split('-');
+  const startY = parseInt(parts[0], 10);
+  const startM = parseInt(parts[1], 10) || 1;
+  const now = new Date();
+  let endY, endM;
+  if (exp.currentWorking || !exp.endDate) {
+    endY = now.getFullYear();
+    endM = now.getMonth() + 1;
+  } else {
+    const eParts = exp.endDate.split('-');
+    endY = parseInt(eParts[0], 10);
+    endM = parseInt(eParts[1], 10) || 1;
+  }
+  if (isNaN(startY) || isNaN(endY)) return '';
+  let months = (endY - startY) * 12 + (endM - startM);
   if (months < 0) months = 0;
   const yrs = Math.floor(months / 12);
   const mos = months % 12;
-  const parts = [];
-  if (yrs > 0) parts.push(`${yrs} yr${yrs > 1 ? 's' : ''}`);
-  if (mos > 0) parts.push(`${mos} mo${mos > 1 ? 's' : ''}`);
-  return parts.join(' ') || '< 1 mo';
+  const p = [];
+  if (yrs > 0) p.push(`${yrs} yr${yrs > 1 ? 's' : ''}`);
+  if (mos > 0) p.push(`${mos} mo${mos > 1 ? 's' : ''}`);
+  return p.join(' ') || '< 1 mo';
 }
 
 function parseSkills(s) {
@@ -59,7 +51,14 @@ export default function ExperienceSection({ experience = [], isOwner, onUpdated 
 
   const startEdit = (i) => {
     setEditingIndex(i); setAdding(false);
-    setDraft({ ...experience[i], currentWorking: experience[i].currentWorking || false });
+    const item = experience[i];
+    setDraft({
+      ...blank(),
+      ...item,
+      startDate: normalizeDateValue(item.startDate),
+      endDate: normalizeDateValue(item.endDate),
+      currentWorking: item.currentWorking || false,
+    });
   };
   const startAdd = () => { setAdding(true); setEditingIndex(null); setDraft(blank()); };
   const cancel = () => { setEditingIndex(null); setAdding(false); setDraft(null); };
@@ -72,7 +71,15 @@ export default function ExperienceSection({ experience = [], isOwner, onUpdated 
     });
   };
 
+  const startDate = normalizeDateValue(draft?.startDate);
+  const endDate = normalizeDateValue(draft?.endDate);
+  const dateError =
+    startDate && endDate && !draft?.currentWorking && startDate > endDate
+      ? 'End date cannot be before start date'
+      : '';
+
   const save = async () => {
+    if (dateError) return alert(dateError);
     setSaving(true);
     try {
       const updated = [...experience];
@@ -80,8 +87,8 @@ export default function ExperienceSection({ experience = [], isOwner, onUpdated 
         ...draft,
         years: draft.startDate
           ? draft.currentWorking || !draft.endDate
-            ? `${draft.startDate} – Present`
-            : `${draft.startDate} – ${draft.endDate}`
+            ? `${formatMonthYear(draft.startDate)} – Present`
+            : `${formatMonthYear(draft.startDate)} – ${formatMonthYear(draft.endDate)}`
           : draft.years,
       };
       if (adding) updated.push(entry);
@@ -118,24 +125,22 @@ export default function ExperienceSection({ experience = [], isOwner, onUpdated 
         </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-        <div>
-          <label className="block text-xs md:text-sm font-medium text-muted mb-1.5">Start Date</label>
-          <input type="date" value={draft.startDate} onChange={(e) => handleField('startDate', e.target.value)} className={INPUT_CLASS} />
-        </div>
-        <div>
-          <label className="block text-xs md:text-sm font-medium text-muted mb-1.5">End Date</label>
-          <input type="date" value={draft.endDate} onChange={(e) => handleField('endDate', e.target.value)} disabled={draft.currentWorking} className={draft.currentWorking ? DISABLED_CLASS : INPUT_CLASS} />
-        </div>
+        <DateDropdown
+          label="Start Date"
+          value={draft.startDate}
+          onChange={(val) => handleField('startDate', val)}
+        />
+        <DateDropdown
+          label="End Date"
+          value={draft.endDate}
+          onChange={(val) => handleField('endDate', val)}
+          showPresent
+          isPresent={draft.currentWorking || false}
+          onPresentChange={(checked) => handleField('currentWorking', checked)}
+          minDate={draft.startDate}
+          error={dateError}
+        />
       </div>
-      <label className="flex items-center gap-2.5 cursor-pointer select-none group">
-        <div className="relative">
-          <input type="checkbox" checked={draft.currentWorking} onChange={(e) => handleField('currentWorking', e.target.checked)} className="sr-only peer" />
-          <div className="w-5 h-5 md:w-6 md:h-6 rounded-md border-2 border-border bg-bg peer-checked:bg-accent peer-checked:border-accent transition-all flex items-center justify-center">
-            {draft.currentWorking && <Check className="w-3.5 h-3.5 md:w-4 md:h-4 text-white" />}
-          </div>
-        </div>
-        <span className="text-sm md:text-base text-muted group-hover:text-main transition-colors">I currently work here</span>
-      </label>
       <div>
         <label className="block text-xs md:text-sm font-medium text-muted mb-1.5">Description</label>
         <textarea value={draft.description} onChange={(e) => handleField('description', e.target.value)} rows={3} placeholder="Describe your responsibilities..." className={INPUT_CLASS + ' resize-none'} />
@@ -173,7 +178,7 @@ export default function ExperienceSection({ experience = [], isOwner, onUpdated 
       {experience.length > 0 ? (
         <div className={`space-y-4 md:space-y-5 ${adding ? 'mt-5' : ''}`}>
           {experience.map((item, i) => {
-            const dateRange = formatDateRange(item);
+            const dateRange = formatDateRangeDisplay(item.startDate, item.endDate, item.currentWorking);
             const duration = calcDuration(item);
             const skills = parseSkills(item.skills);
             const isThisEditing = editingIndex === i;
@@ -186,7 +191,6 @@ export default function ExperienceSection({ experience = [], isOwner, onUpdated 
                       <Briefcase className="w-5 h-5 md:w-6 md:h-6 text-accent" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      {/* Title row — stacked on mobile, inline on md+ */}
                       <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-1 md:gap-2">
                         <div className="min-w-0">
                           <h3 className="font-semibold text-sm md:text-base text-main">{item.role || 'Role'}</h3>
@@ -201,31 +205,21 @@ export default function ExperienceSection({ experience = [], isOwner, onUpdated 
                           )}
                           {isOwner && !isEditing && (
                             <div className="flex items-center gap-0.5 md:opacity-0 md:group-hover:opacity-100 transition-opacity flex-shrink-0">
-                              <button onClick={() => startEdit(i)} className="p-2 rounded-lg text-muted hover:text-accent hover:bg-cardHover active:scale-90 transition-all" title="Edit">
-                                <Pencil className="w-4 h-4" />
-                              </button>
-                              <button onClick={() => handleDelete(i)} className="p-2 rounded-lg text-muted hover:text-red-500 hover:bg-red-500/10 active:scale-90 transition-all" title="Delete">
-                                <Trash2 className="w-4 h-4" />
-                              </button>
+                              <button onClick={() => startEdit(i)} className="p-2 rounded-lg text-muted hover:text-accent hover:bg-cardHover active:scale-90 transition-all" title="Edit"><Pencil className="w-4 h-4" /></button>
+                              <button onClick={() => handleDelete(i)} className="p-2 rounded-lg text-muted hover:text-red-500 hover:bg-red-500/10 active:scale-90 transition-all" title="Delete"><Trash2 className="w-4 h-4" /></button>
                             </div>
                           )}
                         </div>
                       </div>
-
                       {item.currentWorking && (
                         <span className="inline-flex items-center gap-1 mt-1.5 px-2 py-0.5 bg-accent/10 text-accent text-[11px] md:text-xs font-semibold rounded-md">
                           <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
                           Currently Working
                         </span>
                       )}
-
                       {item.description && (
                         <div className="mt-2 md:mt-3">
-                          <ReadMoreText
-                            text={item.description}
-                            lines={3}
-                            className="text-muted text-sm md:text-base"
-                          />
+                          <ReadMoreText text={item.description} lines={3} className="text-muted text-sm md:text-base" />
                         </div>
                       )}
                       {skills.length > 0 && (

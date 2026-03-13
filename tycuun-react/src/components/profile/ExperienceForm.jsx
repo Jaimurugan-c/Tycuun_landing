@@ -1,11 +1,9 @@
-import { Trash2, Briefcase, ChevronUp, ChevronDown, Check } from 'lucide-react';
+import { Trash2, Briefcase, ChevronUp, ChevronDown } from 'lucide-react';
 import SkillsInput from './SkillsInput';
+import DateDropdown, { formatDateRangeDisplay, normalizeDateValue } from './DateDropdown';
 
 const INPUT_CLASS =
   'w-full px-4 py-2.5 bg-bg border border-border rounded-xl text-main placeholder-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 transition-all text-sm';
-
-const DISABLED_CLASS =
-  'w-full px-4 py-2.5 bg-bg border border-border rounded-xl text-muted placeholder-muted text-sm opacity-50 cursor-not-allowed';
 
 export default function ExperienceForm({
   experience,
@@ -18,7 +16,6 @@ export default function ExperienceForm({
 }) {
   const handleChange = (field, value) => {
     onChange(index, field, value);
-    // If checking currentWorking, clear endDate
     if (field === 'currentWorking' && value) {
       onChange(index, 'endDate', '');
     }
@@ -29,16 +26,21 @@ export default function ExperienceForm({
       ? `${experience.role} at ${experience.company}`
       : experience.company || experience.role || `Experience ${index + 1}`;
 
-  const dateRange = [
+  const dateRange = formatDateRangeDisplay(
     experience.startDate,
-    experience.currentWorking ? 'Present' : experience.endDate,
-  ]
-    .filter(Boolean)
-    .join(' → ');
+    experience.endDate,
+    experience.currentWorking
+  );
+
+  const startDate = normalizeDateValue(experience.startDate);
+  const endDate = normalizeDateValue(experience.endDate);
+  const dateError =
+    startDate && endDate && !experience.currentWorking && startDate > endDate
+      ? 'End date cannot be before start date'
+      : '';
 
   return (
     <div className="bg-bg border border-border/50 rounded-xl overflow-hidden transition-all">
-      {/* Header — always visible */}
       <button
         type="button"
         onClick={() => onToggleCollapse(index)}
@@ -78,7 +80,6 @@ export default function ExperienceForm({
         </div>
       </button>
 
-      {/* Expanded */}
       {!isCollapsed && (
         <div className="px-4 pb-5 pt-1 space-y-4 border-t border-border/30">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -103,46 +104,22 @@ export default function ExperienceForm({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-muted mb-1.5">Start Date</label>
-              <input
-                type="date"
-                value={experience.startDate}
-                onChange={(e) => handleChange('startDate', e.target.value)}
-                className={INPUT_CLASS}
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-muted mb-1.5">End Date</label>
-              <input
-                type="date"
-                value={experience.endDate}
-                onChange={(e) => handleChange('endDate', e.target.value)}
-                disabled={experience.currentWorking}
-                className={experience.currentWorking ? DISABLED_CLASS : INPUT_CLASS}
-              />
-            </div>
+            <DateDropdown
+              label="Start Date"
+              value={normalizeDateValue(experience.startDate)}
+              onChange={(val) => handleChange('startDate', val)}
+            />
+            <DateDropdown
+              label="End Date"
+              value={normalizeDateValue(experience.endDate)}
+              onChange={(val) => handleChange('endDate', val)}
+              showPresent
+              isPresent={experience.currentWorking || false}
+              onPresentChange={(checked) => handleChange('currentWorking', checked)}
+              minDate={normalizeDateValue(experience.startDate)}
+              error={dateError}
+            />
           </div>
-
-          {/* Currently Working checkbox */}
-          <label className="flex items-center gap-2.5 cursor-pointer select-none group">
-            <div className="relative">
-              <input
-                type="checkbox"
-                checked={experience.currentWorking || false}
-                onChange={(e) => handleChange('currentWorking', e.target.checked)}
-                className="sr-only peer"
-              />
-              <div className="w-5 h-5 rounded-md border-2 border-border bg-bg peer-checked:bg-accent peer-checked:border-accent transition-all flex items-center justify-center">
-                {experience.currentWorking && (
-                  <Check className="w-3.5 h-3.5 text-white" />
-                )}
-              </div>
-            </div>
-            <span className="text-sm text-muted group-hover:text-main transition-colors">
-              I currently work here
-            </span>
-          </label>
 
           <div>
             <label className="block text-xs font-medium text-muted mb-1.5">Description</label>

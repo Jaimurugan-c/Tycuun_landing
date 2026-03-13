@@ -35,6 +35,7 @@ const userSchema = new mongoose.Schema({
       year: { type: String, default: '' },
       startDate: { type: String, default: '' },
       endDate: { type: String, default: '' },
+      currentlyStudying: { type: Boolean, default: false },
       description: { type: String, default: '' },
       skills: { type: String, default: '' },
     },

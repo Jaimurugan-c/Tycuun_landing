@@ -2,26 +2,11 @@ import { useState } from 'react';
 import { GraduationCap, Pencil, Trash2, Plus, X, Check, Loader2 } from 'lucide-react';
 import SkillsInput from './SkillsInput';
 import ReadMoreText from './ReadMoreText';
+import DateDropdown, { formatDateRangeDisplay, formatMonthYear, normalizeDateValue } from './DateDropdown';
 import * as api from '../../services/api';
 
 const INPUT_CLASS =
   'w-full px-4 py-3 bg-bg border border-border rounded-xl text-main text-sm md:text-base placeholder-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 transition-all';
-
-function fmtDate(dateStr) {
-  if (!dateStr) return '';
-  const d = new Date(dateStr + 'T00:00:00');
-  if (isNaN(d.getTime())) return dateStr;
-  return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-}
-
-function formatDateRange(edu) {
-  const start = fmtDate(edu.startDate);
-  const end = fmtDate(edu.endDate);
-  if (start && end) return `${start} — ${end}`;
-  if (start) return `${start} — Present`;
-  if (edu.year) return edu.year;
-  return '';
-}
 
 function parseSkills(s) {
   return s ? s.split(',').map((x) => x.trim()).filter(Boolean) : [];
@@ -33,18 +18,51 @@ export default function EducationSection({ education = [], isOwner, onUpdated })
   const [draft, setDraft] = useState(null);
   const [saving, setSaving] = useState(false);
 
-  const blank = () => ({ institution: '', school: '', degree: '', year: '', startDate: '', endDate: '', description: '', skills: '' });
+  const blank = () => ({ institution: '', school: '', degree: '', year: '', startDate: '', endDate: '', currentlyStudying: false, description: '', skills: '' });
 
-  const startEdit = (i) => { setEditingIndex(i); setAdding(false); setDraft({ ...education[i], institution: education[i].institution || education[i].school || '' }); };
+  const startEdit = (i) => {
+    setEditingIndex(i); setAdding(false);
+    const item = education[i];
+    setDraft({
+      ...blank(),
+      ...item,
+      institution: item.institution || item.school || '',
+      startDate: normalizeDateValue(item.startDate),
+      endDate: normalizeDateValue(item.endDate),
+      currentlyStudying: item.currentlyStudying || false,
+    });
+  };
   const startAdd = () => { setAdding(true); setEditingIndex(null); setDraft(blank()); };
   const cancel = () => { setEditingIndex(null); setAdding(false); setDraft(null); };
-  const handleField = (field, value) => { setDraft((d) => ({ ...d, [field]: value })); };
+  const handleField = (field, value) => {
+    setDraft((d) => {
+      const updated = { ...d, [field]: value };
+      if (field === 'currentlyStudying' && value) updated.endDate = '';
+      return updated;
+    });
+  };
+
+  const startDate = normalizeDateValue(draft?.startDate);
+  const endDate = normalizeDateValue(draft?.endDate);
+  const dateError =
+    startDate && endDate && !draft?.currentlyStudying && startDate > endDate
+      ? 'End date cannot be before start date'
+      : '';
 
   const save = async () => {
+    if (dateError) return alert(dateError);
     setSaving(true);
     try {
       const updated = [...education];
-      const entry = { ...draft, school: draft.institution || draft.school, year: draft.startDate && draft.endDate ? `${draft.startDate} – ${draft.endDate}` : draft.startDate ? `${draft.startDate} – Present` : draft.year };
+      const entry = {
+        ...draft,
+        school: draft.institution || draft.school,
+        year: draft.startDate
+          ? draft.currentlyStudying || !draft.endDate
+            ? `${formatMonthYear(draft.startDate)} – Present`
+            : `${formatMonthYear(draft.startDate)} – ${formatMonthYear(draft.endDate)}`
+          : draft.year,
+      };
       if (adding) updated.push(entry);
       else if (editingIndex !== null) updated[editingIndex] = entry;
       await api.updateProfile({ education: updated });
@@ -76,15 +94,21 @@ export default function EducationSection({ education = [], isOwner, onUpdated })
         </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-        <div>
-          <label className="block text-xs md:text-sm font-medium text-muted mb-1.5">Start Date</label>
-          <input type="date" value={draft.startDate} onChange={(e) => handleField('startDate', e.target.value)} className={INPUT_CLASS} />
-        </div>
-        <div>
-          <label className="block text-xs md:text-sm font-medium text-muted mb-1.5">End Date</label>
-          <input type="date" value={draft.endDate} onChange={(e) => handleField('endDate', e.target.value)} className={INPUT_CLASS} />
-          <p className="text-[11px] md:text-xs text-muted mt-1">Leave empty if currently studying</p>
-        </div>
+        <DateDropdown
+          label="Start Date"
+          value={draft.startDate}
+          onChange={(val) => handleField('startDate', val)}
+        />
+        <DateDropdown
+          label="End Date"
+          value={draft.endDate}
+          onChange={(val) => handleField('endDate', val)}
+          showPresent
+          isPresent={draft.currentlyStudying || false}
+          onPresentChange={(checked) => handleField('currentlyStudying', checked)}
+          minDate={draft.startDate}
+          error={dateError}
+        />
       </div>
       <div>
         <label className="block text-xs md:text-sm font-medium text-muted mb-1.5">Description</label>
@@ -123,7 +147,7 @@ export default function EducationSection({ education = [], isOwner, onUpdated })
       {education.length > 0 ? (
         <div className={`space-y-4 md:space-y-5 ${adding ? 'mt-5' : ''}`}>
           {education.map((item, i) => {
-            const dateRange = formatDateRange(item);
+            const dateRange = formatDateRangeDisplay(item.startDate, item.endDate, item.currentlyStudying);
             const displayName = item.institution || item.school || 'Institution';
             const skills = parseSkills(item.skills);
             const isThisEditing = editingIndex === i;
@@ -151,13 +175,15 @@ export default function EducationSection({ education = [], isOwner, onUpdated })
                           )}
                         </div>
                       </div>
+                      {item.currentlyStudying && (
+                        <span className="inline-flex items-center gap-1 mt-1.5 px-2 py-0.5 bg-accent/10 text-accent text-[11px] md:text-xs font-semibold rounded-md">
+                          <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+                          Currently Studying
+                        </span>
+                      )}
                       {item.description && (
                         <div className="mt-2 md:mt-3">
-                          <ReadMoreText
-                            text={item.description}
-                            lines={3}
-                            className="text-muted text-sm md:text-base"
-                          />
+                          <ReadMoreText text={item.description} lines={3} className="text-muted text-sm md:text-base" />
                         </div>
                       )}
                       {skills.length > 0 && (

@@ -1,5 +1,6 @@
 import { Trash2, GraduationCap, ChevronUp, ChevronDown } from 'lucide-react';
 import SkillsInput from './SkillsInput';
+import DateDropdown, { formatDateRangeDisplay, normalizeDateValue } from './DateDropdown';
 
 const INPUT_CLASS =
   'w-full px-4 py-2.5 bg-bg border border-border rounded-xl text-main placeholder-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 transition-all text-sm';
@@ -15,6 +16,9 @@ export default function EducationForm({
 }) {
   const handleChange = (field, value) => {
     onChange(index, field, value);
+    if (field === 'currentlyStudying' && value) {
+      onChange(index, 'endDate', '');
+    }
   };
 
   const summaryLabel =
@@ -22,9 +26,19 @@ export default function EducationForm({
       ? `${education.degree} — ${education.institution}`
       : education.institution || education.degree || education.school || `Education ${index + 1}`;
 
-  const dateRange = [education.startDate, education.endDate]
-    .filter(Boolean)
-    .join(' → ');
+  const dateRange = formatDateRangeDisplay(
+    education.startDate,
+    education.endDate,
+    education.currentlyStudying
+  );
+
+  // Validate: start cannot be after end
+  const startDate = normalizeDateValue(education.startDate);
+  const endDate = normalizeDateValue(education.endDate);
+  const dateError =
+    startDate && endDate && !education.currentlyStudying && startDate > endDate
+      ? 'End date cannot be before start date'
+      : '';
 
   return (
     <div className="bg-bg border border-border/50 rounded-xl overflow-hidden transition-all">
@@ -68,7 +82,6 @@ export default function EducationForm({
       {/* Expanded Form */}
       {!isCollapsed && (
         <div className="px-4 pb-5 pt-1 space-y-4 border-t border-border/30">
-          {/* Institution + Degree — two-column on desktop */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-medium text-muted mb-1.5">
@@ -96,29 +109,21 @@ export default function EducationForm({
 
           {/* Dates */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-muted mb-1.5">
-                Start Date
-              </label>
-              <input
-                type="date"
-                value={education.startDate}
-                onChange={(e) => handleChange('startDate', e.target.value)}
-                className={INPUT_CLASS}
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-muted mb-1.5">
-                End Date
-              </label>
-              <input
-                type="date"
-                value={education.endDate}
-                onChange={(e) => handleChange('endDate', e.target.value)}
-                className={INPUT_CLASS}
-              />
-              <p className="text-[11px] text-muted mt-1">Leave empty if currently studying</p>
-            </div>
+            <DateDropdown
+              label="Start Date"
+              value={normalizeDateValue(education.startDate)}
+              onChange={(val) => handleChange('startDate', val)}
+            />
+            <DateDropdown
+              label="End Date"
+              value={normalizeDateValue(education.endDate)}
+              onChange={(val) => handleChange('endDate', val)}
+              showPresent
+              isPresent={education.currentlyStudying || false}
+              onPresentChange={(checked) => handleChange('currentlyStudying', checked)}
+              minDate={normalizeDateValue(education.startDate)}
+              error={dateError}
+            />
           </div>
 
           {/* Description */}
