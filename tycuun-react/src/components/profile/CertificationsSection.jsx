@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Award, Pencil, Trash2, Plus, X, Check, Loader2, ExternalLink } from 'lucide-react';
+import SkillsInput from './SkillsInput';
 import * as api from '../../services/api';
 
 const INPUT_CLASS =
@@ -18,7 +19,7 @@ export default function CertificationsSection({ certifications = [], isOwner, on
   const [draft, setDraft] = useState(null);
   const [saving, setSaving] = useState(false);
 
-  const blank = () => ({ name: '', organization: '', issueDate: '', credentialId: '', credentialUrl: '', description: '' });
+  const blank = () => ({ name: '', organization: '', issueDate: '', credentialId: '', credentialUrl: '', description: '', skills: '' });
 
   const startEdit = (i) => { setEditingIndex(i); setAdding(false); setDraft({ ...blank(), ...certifications[i] }); };
   const startAdd = () => { setAdding(true); setEditingIndex(null); setDraft(blank()); };
@@ -77,6 +78,10 @@ export default function CertificationsSection({ certifications = [], isOwner, on
       <div>
         <label className="block text-xs md:text-sm font-medium text-muted mb-1.5">Description</label>
         <textarea value={draft.description} onChange={(e) => handleField('description', e.target.value)} rows={3} placeholder="What this certification covers..." className={INPUT_CLASS + ' resize-none'} />
+      </div>
+      <div>
+        <label className="block text-xs md:text-sm font-medium text-muted mb-1.5">Skills (optional)</label>
+        <SkillsInput value={draft.skills} onChange={(val) => handleField('skills', val)} placeholder="e.g. AWS, Cloud Architecture" />
       </div>
       <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2 pt-1">
         <button onClick={cancel} disabled={saving} className="px-4 py-2.5 rounded-lg text-sm md:text-base font-medium text-muted hover:text-main hover:bg-cardHover active:scale-[0.98] transition-all">Cancel</button>
@@ -142,6 +147,14 @@ export default function CertificationsSection({ certifications = [], isOwner, on
 
                       {cert.description && (
                         <p className="text-muted text-sm md:text-base mt-2 md:mt-3 leading-relaxed whitespace-pre-wrap">{cert.description}</p>
+                      )}
+
+                      {cert.skills && cert.skills.split(',').map((s) => s.trim()).filter(Boolean).length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 md:gap-2 mt-2.5 md:mt-3">
+                          {cert.skills.split(',').map((s) => s.trim()).filter(Boolean).map((skill, si) => (
+                            <span key={si} className="px-3 py-1 md:py-1.5 bg-accent/10 text-accent text-xs md:text-sm font-medium rounded-full">{skill}</span>
+                          ))}
+                        </div>
                       )}
 
                       {cert.credentialUrl && (

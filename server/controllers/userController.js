@@ -1,5 +1,35 @@
 const User = require('../models/User');
 
+// Helper: sync skills from education, experience, certifications into main skills array
+function syncSkillsFromSections(user) {
+  const sectionSkills = new Set(
+    (user.skills || []).map((s) => s.trim().toLowerCase())
+  );
+  const skillsOriginal = new Map(
+    (user.skills || []).map((s) => [s.trim().toLowerCase(), s.trim()])
+  );
+
+  const extractSkills = (items) => {
+    (items || []).forEach((item) => {
+      if (item.skills && typeof item.skills === 'string') {
+        item.skills.split(',').map((s) => s.trim()).filter(Boolean).forEach((s) => {
+          const key = s.toLowerCase();
+          if (!sectionSkills.has(key)) {
+            sectionSkills.add(key);
+            skillsOriginal.set(key, s);
+          }
+        });
+      }
+    });
+  };
+
+  extractSkills(user.education);
+  extractSkills(user.experience);
+  extractSkills(user.certifications);
+
+  user.skills = Array.from(skillsOriginal.values());
+}
+
 // GET /api/users/me — logged-in user's profile
 exports.getMe = async (req, res) => {
   try {
@@ -65,6 +95,9 @@ exports.updateProfile = async (req, res) => {
       }
     }
 
+    // Auto-sync skills from all sections into main skills array
+    syncSkillsFromSections(user);
+
     await user.save();
     res.json({ success: true, user });
   } catch (error) {
@@ -79,6 +112,7 @@ exports.addEducation = async (req, res) => {
     if (!user) return res.status(404).json({ success: false, message: 'User not found' });
 
     user.education.push(req.body);
+    syncSkillsFromSections(user);
     await user.save();
     res.json({ success: true, user });
   } catch (error) {
@@ -131,6 +165,7 @@ exports.addExperience = async (req, res) => {
     if (!user) return res.status(404).json({ success: false, message: 'User not found' });
 
     user.experience.push(req.body);
+    syncSkillsFromSections(user);
     await user.save();
     res.json({ success: true, user });
   } catch (error) {

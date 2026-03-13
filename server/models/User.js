@@ -65,6 +65,7 @@ const userSchema = new mongoose.Schema({
       credentialId: { type: String, default: '' },
       credentialUrl: { type: String, default: '' },
       description: { type: String, default: '' },
+      skills: { type: String, default: '' },
     },
   ],
   profileImage: {
