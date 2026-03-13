@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { GraduationCap, Pencil, Trash2, Plus, X, Check, Loader2 } from 'lucide-react';
 import SkillsInput from './SkillsInput';
+import ReadMoreText from './ReadMoreText';
 import * as api from '../../services/api';
 
 const INPUT_CLASS =
@@ -150,7 +151,15 @@ export default function EducationSection({ education = [], isOwner, onUpdated })
                           )}
                         </div>
                       </div>
-                      {item.description && <p className="text-muted text-sm md:text-base mt-2 md:mt-3 leading-relaxed whitespace-pre-wrap">{item.description}</p>}
+                      {item.description && (
+                        <div className="mt-2 md:mt-3">
+                          <ReadMoreText
+                            text={item.description}
+                            lines={3}
+                            className="text-muted text-sm md:text-base"
+                          />
+                        </div>
+                      )}
                       {skills.length > 0 && (
                         <div className="flex flex-wrap gap-1.5 md:gap-2 mt-2.5 md:mt-3">
                           {skills.map((skill, si) => (

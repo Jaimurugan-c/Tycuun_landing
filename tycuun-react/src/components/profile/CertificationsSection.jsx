@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Award, Pencil, Trash2, Plus, X, Check, Loader2, ExternalLink } from 'lucide-react';
 import SkillsInput from './SkillsInput';
+import ReadMoreText from './ReadMoreText';
 import * as api from '../../services/api';
 
 const INPUT_CLASS =
@@ -146,7 +147,13 @@ export default function CertificationsSection({ certifications = [], isOwner, on
                       </div>
 
                       {cert.description && (
-                        <p className="text-muted text-sm md:text-base mt-2 md:mt-3 leading-relaxed whitespace-pre-wrap">{cert.description}</p>
+                        <div className="mt-2 md:mt-3">
+                          <ReadMoreText
+                            text={cert.description}
+                            lines={3}
+                            className="text-muted text-sm md:text-base"
+                          />
+                        </div>
                       )}
 
                       {cert.skills && cert.skills.split(',').map((s) => s.trim()).filter(Boolean).length > 0 && (

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Pencil, X, Check, Loader2 } from 'lucide-react';
+import ReadMoreText from './ReadMoreText';
 import * as api from '../../services/api';
 
 export default function AboutSection({ bio, isOwner, onUpdated }) {
@@ -79,9 +80,15 @@ export default function AboutSection({ bio, isOwner, onUpdated }) {
           className={inputClass}
           autoFocus
         />
+      ) : bio ? (
+        <ReadMoreText
+          text={bio}
+          lines={3}
+          className="text-muted text-sm md:text-base"
+        />
       ) : (
-        <p className="text-muted text-sm md:text-base leading-relaxed whitespace-pre-wrap">
-          {bio || 'No bio added yet.'}
+        <p className="text-muted text-sm md:text-base leading-relaxed">
+          No bio added yet.
         </p>
       )}
     </div>
