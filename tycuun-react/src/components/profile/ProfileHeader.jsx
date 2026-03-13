@@ -62,8 +62,9 @@ export default function ProfileHeader({ user, isOwner, onEdit }) {
       </div>
 
       <div className="px-4 sm:px-6 pb-5 sm:pb-6 -mt-12 sm:-mt-14 md:-mt-16 relative">
-        {/* Avatar + Info — centered on mobile, left-aligned on sm+ */}
-        <div className="flex flex-col items-center sm:items-start sm:flex-row sm:items-end gap-3 sm:gap-4">
+        {/* Avatar + Name + Headline — fully centered vertical stack */}
+        <div className="flex flex-col items-center text-center">
+          {/* Profile Image */}
           {user?.profileImage ? (
             <img
               src={user.profileImage}
@@ -82,35 +83,39 @@ export default function ProfileHeader({ user, isOwner, onEdit }) {
               {user?.name?.charAt(0).toUpperCase() || 'U'}
             </div>
           )}
-          <div className="pb-0 sm:pb-2 min-w-0 text-center sm:text-left">
-            <h1 className="font-display font-bold text-2xl md:text-3xl text-main truncate leading-tight">
-              {user?.name || 'User'}
-            </h1>
-            <p className="text-muted text-sm md:text-base mt-0.5 truncate">
-              {user?.headline || 'No headline yet'}
+
+          {/* User Name */}
+          <h1 className="font-display font-bold text-2xl md:text-3xl text-main leading-tight mt-3 sm:mt-4">
+            {user?.name || 'User'}
+          </h1>
+
+          {/* Headline — wrapping, multi-line */}
+          {user?.headline && (
+            <p className="mt-2 text-base md:text-lg text-muted leading-relaxed break-words max-w-xl">
+              {user.headline}
             </p>
+          )}
+
+          {/* Meta info */}
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 mt-3">
+            {user?.email && (
+              <span className="inline-flex items-center gap-1.5 text-muted text-xs md:text-sm">
+                <Mail className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                {user.email}
+              </span>
+            )}
+            {memberSince && (
+              <span className="inline-flex items-center gap-1.5 text-muted text-xs md:text-sm">
+                <Calendar className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                Joined {memberSince}
+              </span>
+            )}
           </div>
         </div>
 
-        {/* Meta info */}
-        <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-4 gap-y-1.5 mt-3">
-          {user?.email && (
-            <span className="inline-flex items-center gap-1.5 text-muted text-xs md:text-sm">
-              <Mail className="w-3.5 h-3.5 md:w-4 md:h-4" />
-              {user.email}
-            </span>
-          )}
-          {memberSince && (
-            <span className="inline-flex items-center gap-1.5 text-muted text-xs md:text-sm">
-              <Calendar className="w-3.5 h-3.5 md:w-4 md:h-4" />
-              Joined {memberSince}
-            </span>
-          )}
-        </div>
-
-        {/* Action buttons — stacked on mobile, inline on sm+ */}
+        {/* Action buttons — centered, stacked on mobile, inline on sm+ */}
         {isOwner && (
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 mt-5 pt-5 border-t border-border/50">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center sm:justify-center gap-2.5 sm:gap-3 mt-5 pt-5 border-t border-border/50">
             <button
               onClick={() => navigate('/profile/edit')}
               className="btn-primary inline-flex items-center justify-center gap-2 text-white font-semibold px-5 py-2.5 md:py-3 rounded-xl text-sm md:text-base active:scale-[0.98] transition-transform"
