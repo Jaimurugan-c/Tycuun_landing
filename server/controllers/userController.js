@@ -1,8 +1,7 @@
 const User = require('../models/User');
-const fs = require('fs');
-const path = require('path');
+const cloudinary = require('../config/cloudinary');
 
-// GET /api/user/profile — authenticated user's profile
+// GET /api/user/profile
 exports.getProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).select(
@@ -17,7 +16,7 @@ exports.getProfile = async (req, res) => {
   }
 };
 
-// PUT /api/user/profile — update profile fields (supports multipart/form-data for image)
+// PUT /api/user/profile
 exports.updateProfile = async (req, res) => {
   try {
     const { name, address, city, bloodGroup, phoneNumber } = req.body;
@@ -33,16 +32,32 @@ exports.updateProfile = async (req, res) => {
     if (bloodGroup !== undefined) user.bloodGroup = bloodGroup;
     if (phoneNumber !== undefined) user.phoneNumber = phoneNumber;
 
-    // Handle uploaded profile image
+    // Upload image to Cloudinary if provided
     if (req.file) {
-      // Delete old image if it exists
+      // Delete old image from Cloudinary if it exists
       if (user.profileImage) {
-        const oldPath = path.join(__dirname, '..', user.profileImage);
-        if (fs.existsSync(oldPath)) {
-          fs.unlinkSync(oldPath);
-        }
+        const parts = user.profileImage.split('/');
+        const fileWithExt = parts[parts.length - 1];
+        const publicId = `tycuun-profiles/${fileWithExt.split('.')[0]}`;
+        await cloudinary.uploader.destroy(publicId).catch(() => {});
       }
-      user.profileImage = `/uploads/${req.file.filename}`;
+
+      // Upload new image from buffer
+      const result = await new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          {
+            folder: 'tycuun-profiles',
+            transformation: [{ width: 500, height: 500, crop: 'fill', gravity: 'face' }],
+          },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        );
+        stream.end(req.file.buffer);
+      });
+
+      user.profileImage = result.secure_url;
     }
 
     await user.save();

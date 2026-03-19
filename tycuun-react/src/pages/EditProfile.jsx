@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { Loader2, ArrowLeft, Check, Camera, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import * as api from '../services/api';
-import { getBaseURL } from '../services/api';
 
 const BLOOD_GROUPS = ['', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
@@ -25,12 +24,6 @@ export default function EditProfile() {
     bloodGroup: '',
     phoneNumber: '',
   });
-
-  const getImageUrl = (path) => {
-    if (!path) return null;
-    if (path.startsWith('http')) return path;
-    return `${getBaseURL()}${path}`;
-  };
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -108,7 +101,7 @@ export default function EditProfile() {
     );
   }
 
-  const displayImage = imagePreview || getImageUrl(currentImage);
+  const displayImage = imagePreview || currentImage || null;
 
   const inputClass =
     'w-full px-4 py-2.5 bg-bg border border-border rounded-xl text-main placeholder-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 transition-all text-sm';

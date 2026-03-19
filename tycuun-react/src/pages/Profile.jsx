@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { Loader2, Mail, MapPin, Droplets, Calendar, Hash, User, ArrowRight, Pencil, Phone, Camera } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import * as api from '../services/api';
-import { getBaseURL } from '../services/api';
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -47,12 +46,6 @@ export default function Profile() {
     }
   };
 
-  const getImageUrl = (path) => {
-    if (!path) return null;
-    if (path.startsWith('http')) return path;
-    return `${getBaseURL()}${path}`;
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen pt-28 flex items-center justify-center bg-bg">
@@ -71,8 +64,6 @@ export default function Profile() {
       </div>
     );
   }
-
-  const profileImageUrl = getImageUrl(profile?.profileImage);
 
   const details = [
     { icon: User, label: 'Name', value: profile?.name },
@@ -116,9 +107,9 @@ export default function Profile() {
                 className="w-28 h-28 rounded-full border-4 border-card shadow-lg overflow-hidden flex items-center justify-center"
                 style={{ background: 'linear-gradient(135deg, var(--accent), var(--accent-light))' }}
               >
-                {profileImageUrl ? (
+                {profile?.profileImage ? (
                   <img
-                    src={profileImageUrl}
+                    src={profile.profileImage}
                     alt={profile.name}
                     className="w-full h-full object-cover"
                   />

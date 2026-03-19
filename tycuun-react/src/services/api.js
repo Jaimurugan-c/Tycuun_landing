@@ -19,9 +19,3 @@ export const updateProfile = (formData) =>
   API.put('/user/profile', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
-
-// Helper to get the backend base URL (without /api) for serving uploaded images
-export const getBaseURL = () => {
-  const apiUrl = import.meta.env.VITE_API_URL || '';
-  return apiUrl.replace(/\/api\/?$/, '');
-};

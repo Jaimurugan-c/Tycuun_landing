@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Home, Megaphone, Users, Briefcase, User, LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { getBaseURL } from '../services/api';
 
 export default function AuthNavbar({ onToggleTheme }) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -36,13 +35,7 @@ export default function AuthNavbar({ onToggleTheme }) {
 
   const isActive = (path) => location.pathname === path;
 
-  const getImageUrl = (path) => {
-    if (!path) return null;
-    if (path.startsWith('http')) return path;
-    return `${getBaseURL()}${path}`;
-  };
-
-  const avatarUrl = getImageUrl(user?.profileImage);
+  const avatarUrl = user?.profileImage || null;
 
   return (
     <nav className="nav-glass fixed top-0 left-0 right-0 z-50">
