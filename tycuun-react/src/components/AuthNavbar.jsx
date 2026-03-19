@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, Bell, User, LogOut } from 'lucide-react';
+import { Home, Megaphone, Users, Briefcase, User, LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { getBaseURL } from '../services/api';
 
 export default function AuthNavbar({ onToggleTheme }) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -27,11 +28,21 @@ export default function AuthNavbar({ onToggleTheme }) {
 
   const navItems = [
     { icon: Home, label: 'Home', path: '/' },
-    { icon: Bell, label: 'Notifications', path: '#' },
-    { icon: User, label: 'Me', path: '/profile' },
+    { icon: Megaphone, label: 'Advertise', path: '/advertise' },
+    { icon: Users, label: 'Recruitment', path: '/recruitment' },
+    { icon: Briefcase, label: 'Business', path: '/business' },
+    { icon: User, label: 'Profile', path: '/profile' },
   ];
 
   const isActive = (path) => location.pathname === path;
+
+  const getImageUrl = (path) => {
+    if (!path) return null;
+    if (path.startsWith('http')) return path;
+    return `${getBaseURL()}${path}`;
+  };
+
+  const avatarUrl = getImageUrl(user?.profileImage);
 
   return (
     <nav className="nav-glass fixed top-0 left-0 right-0 z-50">
@@ -47,13 +58,13 @@ export default function AuthNavbar({ onToggleTheme }) {
             <span className="font-display font-bold text-xl tracking-tight text-main">TYCUUN</span>
           </a>
 
-          {/* Desktop Nav Icons */}
+          {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-1">
             {navItems.map(({ icon: Icon, label, path }) => (
               <button
                 key={label}
-                onClick={() => path !== '#' && navigate(path)}
-                className={`flex flex-col items-center gap-0.5 px-5 py-2 rounded-lg transition-colors ${
+                onClick={() => navigate(path)}
+                className={`flex flex-col items-center gap-0.5 px-4 py-2 rounded-lg transition-colors ${
                   isActive(path)
                     ? 'text-accent'
                     : 'text-muted hover:text-accent hover:bg-cardHover'
@@ -79,10 +90,14 @@ export default function AuthNavbar({ onToggleTheme }) {
             <div className="flex items-center gap-3 pl-3 border-l border-border">
               <button
                 onClick={() => navigate('/profile')}
-                className="w-8 h-8 rounded-full flex items-center justify-center text-white font-semibold text-sm"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-white font-semibold text-sm overflow-hidden"
                 style={{ background: 'linear-gradient(135deg, var(--accent), var(--accent-light))' }}
               >
-                {user?.name?.charAt(0).toUpperCase() || 'U'}
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt={user.name} className="w-full h-full object-cover" />
+                ) : (
+                  user?.name?.charAt(0).toUpperCase() || 'U'
+                )}
               </button>
               <button
                 onClick={handleLogout}
@@ -132,10 +147,14 @@ export default function AuthNavbar({ onToggleTheme }) {
           <div className="px-6 pb-4 mb-2 border-b border-border">
             <div className="flex items-center gap-3">
               <div
-                className="w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold"
+                className="w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold overflow-hidden"
                 style={{ background: 'linear-gradient(135deg, var(--accent), var(--accent-light))' }}
               >
-                {user?.name?.charAt(0).toUpperCase() || 'U'}
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt={user.name} className="w-full h-full object-cover" />
+                ) : (
+                  user?.name?.charAt(0).toUpperCase() || 'U'
+                )}
               </div>
               <div>
                 <div className="text-sm font-semibold text-main">{user?.name || 'User'}</div>
@@ -148,7 +167,7 @@ export default function AuthNavbar({ onToggleTheme }) {
             {navItems.map(({ icon: Icon, label, path }) => (
               <button
                 key={label}
-                onClick={() => { if (path !== '#') navigate(path); closeMenu(); }}
+                onClick={() => { navigate(path); closeMenu(); }}
                 className={`flex items-center gap-3 px-3 py-3 rounded-lg transition-colors text-left ${
                   isActive(path) ? 'text-accent bg-accent/10' : 'text-main hover:bg-cardHover'
                 }`}

@@ -19,59 +19,26 @@ const userSchema = new mongoose.Schema({
     required: [true, 'Password is required'],
     minlength: 6,
   },
-  headline: {
-    type: String,
-    default: '',
-  },
-  bio: {
-    type: String,
-    default: '',
-  },
-  education: [
-    {
-      school: { type: String, default: '' },
-      institution: { type: String, default: '' },
-      degree: { type: String, default: '' },
-      year: { type: String, default: '' },
-      startDate: { type: String, default: '' },
-      endDate: { type: String, default: '' },
-      currentlyStudying: { type: Boolean, default: false },
-      description: { type: String, default: '' },
-      skills: { type: String, default: '' },
-    },
-  ],
-  experience: [
-    {
-      company: { type: String, default: '' },
-      role: { type: String, default: '' },
-      years: { type: String, default: '' },
-      startDate: { type: String, default: '' },
-      endDate: { type: String, default: '' },
-      currentWorking: { type: Boolean, default: false },
-      description: { type: String, default: '' },
-      skills: { type: String, default: '' },
-    },
-  ],
-  skills: [
-    {
-      type: String,
-      trim: true,
-    },
-  ],
-  certifications: [
-    {
-      name: { type: String, default: '' },
-      organization: { type: String, default: '' },
-      issueDate: { type: String, default: '' },
-      credentialId: { type: String, default: '' },
-      credentialUrl: { type: String, default: '' },
-      description: { type: String, default: '' },
-      skills: { type: String, default: '' },
-    },
-  ],
   profileImage: {
     type: String,
     default: '',
+  },
+  address: {
+    type: String,
+    default: '',
+  },
+  city: {
+    type: String,
+    default: '',
+  },
+  bloodGroup: {
+    type: String,
+    default: '',
+  },
+  phoneNumber: {
+    type: String,
+    default: '',
+    trim: true,
   },
   createdAt: {
     type: Date,

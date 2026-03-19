@@ -10,7 +10,7 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
-      api.getProfile()
+      api.getUserProfile()
         .then((res) => setUser(res.data.user || res.data))
         .catch(() => {
           localStorage.removeItem('token');
@@ -41,7 +41,7 @@ export function AuthProvider({ children }) {
   };
 
   const refreshUser = async () => {
-    const res = await api.getProfile();
+    const res = await api.getUserProfile();
     setUser(res.data.user || res.data);
   };
 

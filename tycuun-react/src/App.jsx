@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import { useTheme } from './hooks/useTheme';
 import { useParticles } from './hooks/useParticles';
 import { useAuth } from './context/AuthContext';
@@ -11,8 +11,11 @@ import CTA from './components/CTA';
 import Footer from './components/Footer';
 import WelcomePopup from './components/WelcomePopup';
 import AuthPopup from './components/AuthPopup';
+import PrivateRoute from './routes/PrivateRoute';
 import Profile from './pages/Profile';
-import ProfileView from './pages/ProfileView';
+import Business from './pages/Business';
+import Advertise from './pages/Advertise';
+import Recruitment from './pages/Recruitment';
 import EditProfile from './pages/EditProfile';
 
 function LandingPage({ onOpenAuth }) {
@@ -58,9 +61,11 @@ export default function App() {
 
       <Routes>
         <Route path="/" element={<LandingPage onOpenAuth={() => setAuthOpen(true)} />} />
-        <Route path="/profile" element={user ? <ProfileView /> : <Navigate to="/" replace />} />
-        <Route path="/profile/edit" element={user ? <EditProfile /> : <Navigate to="/" replace />} />
-        <Route path="/profile/:id" element={user ? <ProfileView /> : <Navigate to="/" replace />} />
+        <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
+        <Route path="/edit-profile" element={<PrivateRoute><EditProfile /></PrivateRoute>} />
+        <Route path="/business" element={<PrivateRoute><Business /></PrivateRoute>} />
+        <Route path="/advertise" element={<PrivateRoute><Advertise /></PrivateRoute>} />
+        <Route path="/recruitment" element={<PrivateRoute><Recruitment /></PrivateRoute>} />
       </Routes>
     </>
   );

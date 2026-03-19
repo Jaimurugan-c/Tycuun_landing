@@ -1,383 +1,314 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Save, Loader2, Briefcase, GraduationCap } from 'lucide-react';
+import { Loader2, ArrowLeft, Check, Camera, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import ExperienceForm from '../components/profile/ExperienceForm';
-import EducationForm from '../components/profile/EducationForm';
-import { formatMonthYear, normalizeDateValue } from '../components/profile/DateDropdown';
 import * as api from '../services/api';
+import { getBaseURL } from '../services/api';
 
-const EMPTY_EXPERIENCE = {
-  company: '',
-  role: '',
-  years: '',
-  startDate: '',
-  endDate: '',
-  currentWorking: false,
-  description: '',
-  skills: '',
-};
-
-const EMPTY_EDUCATION = {
-  institution: '',
-  school: '',
-  degree: '',
-  year: '',
-  startDate: '',
-  endDate: '',
-  currentlyStudying: false,
-  description: '',
-  skills: '',
-};
+const BLOOD_GROUPS = ['', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
 export default function EditProfile() {
-  const { user, refreshUser } = useAuth();
   const navigate = useNavigate();
+  const { refreshUser } = useAuth();
+  const fileInputRef = useRef(null);
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
-
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState('');
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [currentImage, setCurrentImage] = useState('');
   const [form, setForm] = useState({
     name: '',
-    headline: '',
-    bio: '',
-    education: [],
-    experience: [],
+    address: '',
+    city: '',
+    bloodGroup: '',
+    phoneNumber: '',
   });
 
-  // Track collapsed state per section
-  const [collapsedExp, setCollapsedExp] = useState({});
-  const [collapsedEdu, setCollapsedEdu] = useState({});
+  const getImageUrl = (path) => {
+    if (!path) return null;
+    if (path.startsWith('http')) return path;
+    return `${getBaseURL()}${path}`;
+  };
 
   useEffect(() => {
-    if (user) {
-      const exp = user.experience?.length
-        ? user.experience.map((e) => ({
-            company: e.company || '',
-            role: e.role || '',
-            years: e.years || '',
-            startDate: normalizeDateValue(e.startDate) || '',
-            endDate: normalizeDateValue(e.endDate) || '',
-            currentWorking: e.currentWorking || false,
-            description: e.description || '',
-            skills: e.skills || '',
-          }))
-        : [];
+    const fetchProfile = async () => {
+      try {
+        const res = await api.getUserProfile();
+        const u = res.data.user;
+        setForm({
+          name: u.name || '',
+          address: u.address || '',
+          city: u.city || '',
+          bloodGroup: u.bloodGroup || '',
+          phoneNumber: u.phoneNumber || '',
+        });
+        setCurrentImage(u.profileImage || '');
+      } catch (err) {
+        setError(err.response?.data?.message || 'Failed to load profile');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProfile();
+  }, []);
 
-      const edu = user.education?.length
-        ? user.education.map((e) => ({
-            institution: e.institution || e.school || '',
-            school: e.school || e.institution || '',
-            degree: e.degree || '',
-            year: e.year || '',
-            startDate: normalizeDateValue(e.startDate) || '',
-            endDate: normalizeDateValue(e.endDate) || '',
-            currentlyStudying: e.currentlyStudying || false,
-            description: e.description || '',
-            skills: e.skills || '',
-          }))
-        : [];
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
 
-      setForm({
-        name: user.name || '',
-        headline: user.headline || '',
-        bio: user.bio || '',
-        education: edu,
-        experience: exp,
-      });
+  const handleFileSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-      // Collapse all existing by default
-      const cExp = {};
-      exp.forEach((_, i) => { cExp[i] = true; });
-      setCollapsedExp(cExp);
+    setImageFile(file);
+    const reader = new FileReader();
+    reader.onload = (ev) => setImagePreview(ev.target.result);
+    reader.readAsDataURL(file);
+  };
 
-      const cEdu = {};
-      edu.forEach((_, i) => { cEdu[i] = true; });
-      setCollapsedEdu(cEdu);
-    }
-  }, [user]);
+  const removeSelectedImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
 
-  const handleSave = async () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     setSaving(true);
-    setSaved(false);
+    setError('');
     try {
-      const payload = {
-        ...form,
-        experience: form.experience.map((exp) => {
-          const years = exp.startDate
-            ? exp.currentWorking || !exp.endDate
-              ? `${formatMonthYear(exp.startDate)} – Present`
-              : `${formatMonthYear(exp.startDate)} – ${formatMonthYear(exp.endDate)}`
-            : exp.years;
-          return { ...exp, years };
-        }),
-        education: form.education.map((edu) => {
-          const year = edu.startDate
-            ? edu.currentlyStudying || !edu.endDate
-              ? `${formatMonthYear(edu.startDate)} – Present`
-              : `${formatMonthYear(edu.startDate)} – ${formatMonthYear(edu.endDate)}`
-            : edu.year;
-          return { ...edu, school: edu.institution || edu.school, year };
-        }),
-      };
-      await api.updateProfile(payload);
+      const formData = new FormData();
+      formData.append('name', form.name);
+      formData.append('address', form.address);
+      formData.append('city', form.city);
+      formData.append('bloodGroup', form.bloodGroup);
+      formData.append('phoneNumber', form.phoneNumber);
+      if (imageFile) {
+        formData.append('profileImage', imageFile);
+      }
+
+      await api.updateProfile(formData);
       await refreshUser();
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2500);
+      setSuccess(true);
+      setTimeout(() => navigate('/profile'), 1200);
     } catch (err) {
-      alert(err.response?.data?.message || 'Update failed');
+      setError(err.response?.data?.message || 'Update failed');
     } finally {
       setSaving(false);
     }
   };
 
-  // ── Generic collapse helpers ──
-  const reindexCollapse = (collapsed, removedIndex) => {
-    const out = {};
-    Object.keys(collapsed).forEach((k) => {
-      const ki = parseInt(k);
-      if (ki < removedIndex) out[ki] = collapsed[ki];
-      else if (ki > removedIndex) out[ki - 1] = collapsed[ki];
-    });
-    return out;
-  };
+  if (loading) {
+    return (
+      <div className="min-h-screen pt-28 flex items-center justify-center bg-bg">
+        <Loader2 className="w-9 h-9 text-accent animate-spin" />
+      </div>
+    );
+  }
 
-  // ── Experience helpers ──
-  const updateExperienceField = (index, field, value) => {
-    const updated = [...form.experience];
-    updated[index] = { ...updated[index], [field]: value };
-    setForm({ ...form, experience: updated });
-  };
-
-  const addExperience = () => {
-    const newIndex = form.experience.length;
-    setForm({ ...form, experience: [...form.experience, { ...EMPTY_EXPERIENCE }] });
-    const collapsed = {};
-    form.experience.forEach((_, i) => { collapsed[i] = true; });
-    collapsed[newIndex] = false;
-    setCollapsedExp(collapsed);
-  };
-
-  const removeExperience = (index) => {
-    setForm({ ...form, experience: form.experience.filter((_, i) => i !== index) });
-    setCollapsedExp(reindexCollapse(collapsedExp, index));
-  };
-
-  const toggleCollapseExp = (index) => {
-    setCollapsedExp((prev) => ({ ...prev, [index]: !prev[index] }));
-  };
-
-  // ── Education helpers ──
-  const updateEducationField = (index, field, value) => {
-    const updated = [...form.education];
-    updated[index] = { ...updated[index], [field]: value };
-    setForm({ ...form, education: updated });
-  };
-
-  const addEducation = () => {
-    const newIndex = form.education.length;
-    setForm({ ...form, education: [...form.education, { ...EMPTY_EDUCATION }] });
-    const collapsed = {};
-    form.education.forEach((_, i) => { collapsed[i] = true; });
-    collapsed[newIndex] = false;
-    setCollapsedEdu(collapsed);
-  };
-
-  const removeEducation = (index) => {
-    setForm({ ...form, education: form.education.filter((_, i) => i !== index) });
-    setCollapsedEdu(reindexCollapse(collapsedEdu, index));
-  };
-
-  const toggleCollapseEdu = (index) => {
-    setCollapsedEdu((prev) => ({ ...prev, [index]: !prev[index] }));
-  };
+  const displayImage = imagePreview || getImageUrl(currentImage);
 
   const inputClass =
     'w-full px-4 py-2.5 bg-bg border border-border rounded-xl text-main placeholder-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 transition-all text-sm';
 
-  const SaveButton = ({ className = '' }) => (
-    <button
-      onClick={handleSave}
-      disabled={saving}
-      className={`btn-primary inline-flex items-center gap-2 text-white font-semibold px-5 py-2.5 rounded-lg text-sm disabled:opacity-50 ${className}`}
-    >
-      {saving ? (
-        <Loader2 className="w-4 h-4 animate-spin" />
-      ) : (
-        <Save className="w-4 h-4" />
-      )}
-      {saving ? 'Saving...' : saved ? 'Saved ✓' : 'Save Changes'}
-    </button>
-  );
-
   return (
-    <div className="min-h-screen pt-24 pb-16 px-4">
-      <div className="max-w-3xl mx-auto space-y-6">
-        {/* Top bar */}
-        <div className="flex items-center justify-between">
-          <button
-            onClick={() => navigate('/profile')}
-            className="inline-flex items-center gap-2 text-muted hover:text-accent transition-colors text-sm font-medium"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Profile
-          </button>
-          <SaveButton />
-        </div>
-
-        {/* ─── Basic Info ─── */}
-        <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
-          <h2 className="font-display font-semibold text-lg text-main">Basic Info</h2>
-          <div>
-            <label className="block text-xs font-medium text-muted mb-1.5">Full Name</label>
-            <input
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              placeholder="Your name"
-              className={inputClass}
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-muted mb-1.5">Headline</label>
-            <input
-              value={form.headline}
-              onChange={(e) => setForm({ ...form, headline: e.target.value })}
-              placeholder="e.g. Entrepreneur, Full Stack Developer"
-              className={inputClass}
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-muted mb-1.5">Bio</label>
-            <textarea
-              value={form.bio}
-              onChange={(e) => setForm({ ...form, bio: e.target.value })}
-              rows={4}
-              placeholder="Tell people about yourself..."
-              className={inputClass + ' resize-none'}
-            />
-          </div>
-        </div>
-
-        {/* ─── Experience ─── */}
-        <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Briefcase className="w-5 h-5 text-accent" />
-              <h2 className="font-display font-semibold text-lg text-main">Experience</h2>
-              {form.experience.length > 0 && (
-                <span className="text-xs bg-accent/10 text-accent px-2 py-0.5 rounded-full font-medium">
-                  {form.experience.length}
-                </span>
-              )}
-            </div>
+    <div className="min-h-screen pt-24 md:pt-28 pb-12 md:pb-20 px-4 bg-bg">
+      <div className="max-w-lg mx-auto">
+        <div className="bg-card border border-border rounded-2xl shadow-lg shadow-black/5 overflow-hidden">
+          {/* Header */}
+          <div className="px-6 pt-6 pb-4 border-b border-border/50 flex items-center gap-3">
             <button
-              onClick={addExperience}
-              className="inline-flex items-center gap-1.5 text-accent text-sm font-medium hover:underline"
+              onClick={() => navigate('/profile')}
+              className="p-2 -ml-2 rounded-lg text-muted hover:text-accent hover:bg-cardHover transition-colors"
             >
-              <Plus className="w-4 h-4" /> Add Experience
+              <ArrowLeft className="w-5 h-5" />
             </button>
+            <h1 className="text-lg font-bold text-main font-display">Edit Profile</h1>
           </div>
 
-          {form.experience.length === 0 ? (
-            <div className="text-center py-8">
-              <div className="w-14 h-14 rounded-2xl bg-accent/10 flex items-center justify-center mx-auto mb-3">
-                <Briefcase className="w-7 h-7 text-accent" />
-              </div>
-              <p className="text-muted text-sm mb-3">No experience added yet.</p>
-              <button
-                onClick={addExperience}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-accent border border-accent/30 hover:bg-accent/10 transition-colors"
-              >
-                <Plus className="w-4 h-4" />
-                Add Your First Experience
-              </button>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {form.experience.map((exp, i) => (
-                <ExperienceForm
-                  key={i}
-                  experience={exp}
-                  index={i}
-                  onChange={updateExperienceField}
-                  onDelete={removeExperience}
-                  isCollapsed={!!collapsedExp[i]}
-                  onToggleCollapse={toggleCollapseExp}
-                  total={form.experience.length}
-                />
-              ))}
-              <button
-                onClick={addExperience}
-                className="w-full py-3 border-2 border-dashed border-border hover:border-accent/50 rounded-xl text-sm font-medium text-muted hover:text-accent transition-colors flex items-center justify-center gap-2"
-              >
-                <Plus className="w-4 h-4" />
-                Add Another Experience
-              </button>
+          {/* Success Message */}
+          {success && (
+            <div className="mx-6 mt-4 flex items-center gap-2 px-4 py-3 rounded-xl bg-green-500/10 border border-green-500/20">
+              <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+              <p className="text-sm text-green-500 font-medium">Profile updated successfully!</p>
             </div>
           )}
-        </div>
 
-        {/* ─── Education ─── */}
-        <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <GraduationCap className="w-5 h-5 text-accent" />
-              <h2 className="font-display font-semibold text-lg text-main">Education</h2>
-              {form.education.length > 0 && (
-                <span className="text-xs bg-accent/10 text-accent px-2 py-0.5 rounded-full font-medium">
-                  {form.education.length}
-                </span>
-              )}
-            </div>
-            <button
-              onClick={addEducation}
-              className="inline-flex items-center gap-1.5 text-accent text-sm font-medium hover:underline"
-            >
-              <Plus className="w-4 h-4" /> Add Education
-            </button>
-          </div>
-
-          {form.education.length === 0 ? (
-            <div className="text-center py-8">
-              <div className="w-14 h-14 rounded-2xl bg-accent/10 flex items-center justify-center mx-auto mb-3">
-                <GraduationCap className="w-7 h-7 text-accent" />
-              </div>
-              <p className="text-muted text-sm mb-3">No education added yet.</p>
-              <button
-                onClick={addEducation}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-accent border border-accent/30 hover:bg-accent/10 transition-colors"
-              >
-                <Plus className="w-4 h-4" />
-                Add Your First Education
-              </button>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {form.education.map((edu, i) => (
-                <EducationForm
-                  key={i}
-                  education={edu}
-                  index={i}
-                  onChange={updateEducationField}
-                  onDelete={removeEducation}
-                  isCollapsed={!!collapsedEdu[i]}
-                  onToggleCollapse={toggleCollapseEdu}
-                  total={form.education.length}
-                />
-              ))}
-              <button
-                onClick={addEducation}
-                className="w-full py-3 border-2 border-dashed border-border hover:border-accent/50 rounded-xl text-sm font-medium text-muted hover:text-accent transition-colors flex items-center justify-center gap-2"
-              >
-                <Plus className="w-4 h-4" />
-                Add Another Education
-              </button>
+          {/* Error Message */}
+          {error && (
+            <div className="mx-6 mt-4 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20">
+              <p className="text-sm text-red-500 font-medium">{error}</p>
             </div>
           )}
-        </div>
 
-        {/* Bottom save */}
-        <div className="flex justify-end">
-          <SaveButton />
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="px-6 py-6 space-y-5">
+            {/* Profile Photo Upload */}
+            <div>
+              <label className="block text-xs font-medium text-muted uppercase tracking-wider mb-3">
+                Profile Photo
+              </label>
+              <div className="flex items-center gap-4">
+                <div className="relative group">
+                  <div
+                    className="w-20 h-20 rounded-full overflow-hidden flex items-center justify-center border-2 border-border"
+                    style={{ background: 'linear-gradient(135deg, var(--accent), var(--accent-light))' }}
+                  >
+                    {displayImage ? (
+                      <img src={displayImage} alt="Profile" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-white text-2xl font-bold">
+                        {form.name?.charAt(0).toUpperCase() || 'U'}
+                      </span>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="absolute inset-0 rounded-full flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                  >
+                    <Camera className="w-5 h-5 text-white" />
+                  </button>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="px-4 py-2 text-sm font-medium text-accent border border-accent/30 rounded-lg hover:bg-accent/10 transition-colors cursor-pointer"
+                  >
+                    Choose Photo
+                  </button>
+                  {imageFile && (
+                    <button
+                      type="button"
+                      onClick={removeSelectedImage}
+                      className="flex items-center gap-1 px-3 py-1.5 text-xs text-red-500 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
+                    >
+                      <X className="w-3 h-3" />
+                      Remove
+                    </button>
+                  )}
+                </div>
+
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+              </div>
+              {imageFile && (
+                <p className="text-xs text-muted mt-2">{imageFile.name}</p>
+              )}
+            </div>
+
+            {/* Name */}
+            <div>
+              <label className="block text-xs font-medium text-muted uppercase tracking-wider mb-1.5">
+                Name
+              </label>
+              <input
+                type="text"
+                name="name"
+                value={form.name}
+                onChange={handleChange}
+                placeholder="Your full name"
+                required
+                className={inputClass}
+              />
+            </div>
+
+            {/* Address */}
+            <div>
+              <label className="block text-xs font-medium text-muted uppercase tracking-wider mb-1.5">
+                Address
+              </label>
+              <input
+                type="text"
+                name="address"
+                value={form.address}
+                onChange={handleChange}
+                placeholder="Your address"
+                className={inputClass}
+              />
+            </div>
+
+            {/* City */}
+            <div>
+              <label className="block text-xs font-medium text-muted uppercase tracking-wider mb-1.5">
+                City
+              </label>
+              <input
+                type="text"
+                name="city"
+                value={form.city}
+                onChange={handleChange}
+                placeholder="Your city"
+                className={inputClass}
+              />
+            </div>
+
+            {/* Blood Group */}
+            <div>
+              <label className="block text-xs font-medium text-muted uppercase tracking-wider mb-1.5">
+                Blood Group
+              </label>
+              <select
+                name="bloodGroup"
+                value={form.bloodGroup}
+                onChange={handleChange}
+                className={inputClass + ' appearance-none cursor-pointer'}
+              >
+                <option value="">Select blood group</option>
+                {BLOOD_GROUPS.filter(Boolean).map((bg) => (
+                  <option key={bg} value={bg}>{bg}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Phone Number */}
+            <div>
+              <label className="block text-xs font-medium text-muted uppercase tracking-wider mb-1.5">
+                Phone Number
+              </label>
+              <input
+                type="tel"
+                name="phoneNumber"
+                value={form.phoneNumber}
+                onChange={handleChange}
+                placeholder="+91 9876543210"
+                pattern="[\+]?[0-9\s\-]{7,15}"
+                title="Enter a valid phone number (7-15 digits)"
+                className={inputClass}
+              />
+            </div>
+
+            {/* Submit */}
+            <button
+              type="submit"
+              disabled={saving || success}
+              className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-xl font-semibold text-white transition-all duration-200 hover:opacity-90 hover:shadow-lg cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+              style={{ background: 'linear-gradient(135deg, var(--accent), var(--accent-light))' }}
+            >
+              {saving ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Saving...
+                </>
+              ) : success ? (
+                <>
+                  <Check className="w-4 h-4" />
+                  Saved!
+                </>
+              ) : (
+                'Save Changes'
+              )}
+            </button>
+          </form>
         </div>
       </div>
     </div>
