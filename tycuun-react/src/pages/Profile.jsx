@@ -9,12 +9,12 @@ import {
   Camera, 
   Pencil, 
   Briefcase,
-  ExternalLink,
   User,
   Globe
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import * as api from '../services/api';
+import ImageCropModal from '../components/ImageCropModal';
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -24,6 +24,10 @@ export default function Profile() {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
+
+  // Crop Modal States
+  const [showCropModal, setShowCropModal] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
 
   const fetchProfile = async () => {
     try {
@@ -40,14 +44,24 @@ export default function Profile() {
     fetchProfile();
   }, []);
 
-  const handlePhotoUpload = async (e) => {
+  const handleFileSelect = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => {
+      setSelectedImage(reader.result);
+      setShowCropModal(true);
+    };
+  };
+
+  const handleCropComplete = async (croppedFile) => {
+    setShowCropModal(false);
     setUploading(true);
     try {
       const formData = new FormData();
-      formData.append('profileImage', file);
+      formData.append('profileImage', croppedFile);
       await api.updateProfile(formData);
       await refreshUser();
       await fetchProfile();
@@ -55,6 +69,8 @@ export default function Profile() {
       setError(err.response?.data?.message || 'Upload failed');
     } finally {
       setUploading(false);
+      // Reset input so the same image can be picked again if needed
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
@@ -133,7 +149,7 @@ export default function Profile() {
                   ref={fileInputRef}
                   type="file"
                   accept="image/*"
-                  onChange={handlePhotoUpload}
+                  onChange={handleFileSelect}
                   className="hidden"
                 />
               </div>
@@ -229,7 +245,7 @@ export default function Profile() {
           </div>
         </div>
 
-        {/* FOOTER ACTION (Optional Extra) */}
+        {/* FOOTER ACTION */}
         <div className="text-center pt-4">
           <p className="text-muted text-sm">
             Tycuun Member since {profile?.createdAt ? new Date(profile.createdAt).getFullYear() : '2024'}
@@ -237,6 +253,15 @@ export default function Profile() {
         </div>
 
       </div>
+
+      {/* CROP MODAL */}
+      {showCropModal && (
+        <ImageCropModal
+          imageSrc={selectedImage}
+          onCropDone={handleCropComplete}
+          onClose={() => setShowCropModal(false)}
+        />
+      )}
     </div>
   );
 }
