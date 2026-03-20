@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Loader2, ArrowLeft, Check, Camera, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import * as api from '../services/api';
+import PhoneInput from '../components/PhoneInput';
 
 const BLOOD_GROUPS = ['', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
@@ -268,15 +269,9 @@ export default function EditProfile() {
               <label className="block text-xs font-medium text-muted uppercase tracking-wider mb-1.5">
                 Phone Number
               </label>
-              <input
-                type="tel"
-                name="phoneNumber"
+              <PhoneInput
                 value={form.phoneNumber}
-                onChange={handleChange}
-                placeholder="+91 9876543210"
-                pattern="[\+]?[0-9\s\-]{7,15}"
-                title="Enter a valid phone number (7-15 digits)"
-                className={inputClass}
+                onChange={(val) => setForm({ ...form, phoneNumber: val || '' })}
               />
             </div>
 
