@@ -30,6 +30,10 @@ export default function AuthNavbar({ onToggleTheme }) {
     { icon: Megaphone, label: 'Advertise', path: '/advertise' },
     { icon: Users, label: 'Recruitment', path: '/recruitment' },
     { icon: Briefcase, label: 'Business', path: '/business' },
+  ];
+
+  const mobileNavItems = [
+    ...navItems,
     { icon: User, label: 'Profile', path: '/profile' },
   ];
 
@@ -80,18 +84,20 @@ export default function AuthNavbar({ onToggleTheme }) {
               </svg>
             </button>
 
-            <div className="flex items-center gap-3 pl-3 border-l border-border">
-              <button
-                onClick={() => navigate('/profile')}
-                className="w-8 h-8 rounded-full flex items-center justify-center text-white font-semibold text-sm overflow-hidden"
-                style={{ background: 'linear-gradient(135deg, var(--accent), var(--accent-light))' }}
-              >
-                {avatarUrl ? (
-                  <img src={avatarUrl} alt={user.name} className="w-full h-full object-cover" />
-                ) : (
-                  user?.name?.charAt(0).toUpperCase() || 'U'
-                )}
-              </button>
+            <button
+              onClick={() => navigate('/profile')}
+              className="w-9 h-9 rounded-full overflow-hidden flex items-center justify-center text-white font-semibold text-sm shrink-0 ring-2 ring-transparent hover:ring-accent transition-all cursor-pointer"
+              style={{ background: avatarUrl ? 'transparent' : 'linear-gradient(135deg, var(--accent), var(--accent-light))' }}
+              aria-label="Go to profile"
+            >
+              {avatarUrl ? (
+                <img src={avatarUrl} alt={user?.name || 'Profile'} className="w-full h-full object-cover" />
+              ) : (
+                user?.name?.charAt(0).toUpperCase() || 'U'
+              )}
+            </button>
+
+            <div className="pl-3 border-l border-border">
               <button
                 onClick={handleLogout}
                 className="p-2 rounded-lg text-muted hover:text-red-500 hover:bg-cardHover transition-colors"
@@ -157,7 +163,7 @@ export default function AuthNavbar({ onToggleTheme }) {
           </div>
 
           <nav className="flex flex-col gap-1 p-6">
-            {navItems.map(({ icon: Icon, label, path }) => (
+            {mobileNavItems.map(({ icon: Icon, label, path }) => (
               <button
                 key={label}
                 onClick={() => { navigate(path); closeMenu(); }}

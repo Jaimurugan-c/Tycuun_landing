@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Loader2, Mail, MapPin, Droplets, Calendar, Hash, User, ArrowRight, Pencil, Phone, Camera, UserCircle, MessageCircle } from 'lucide-react';
+import { Loader2, Mail, MapPin, Droplets, Calendar, Hash, User, ArrowRight, Pencil, Phone, Camera, UserCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import * as api from '../services/api';
 
@@ -84,7 +84,6 @@ export default function Profile() {
     { icon: MapPin, label: 'City', value: profile?.city || '—' },
     { icon: Droplets, label: 'Blood Group', value: profile?.bloodGroup || '—' },
     { icon: UserCircle, label: 'Gender', value: profile?.gender || '—' },
-    { icon: MessageCircle, label: 'Pronouns', value: profile?.pronouns || '—' },
     { icon: Phone, label: 'Phone Number', value: profile?.phoneNumber || '—' },
   ];
 
@@ -145,9 +144,16 @@ export default function Profile() {
             </div>
           </div>
 
-          {/* Name & Email Header */}
+          {/* Name, Pronouns & Email Header */}
           <div className="text-center -mt-6 px-6">
-            <h1 className="text-xl font-bold text-main font-display">{profile?.name}</h1>
+            <div className="flex items-center justify-center gap-2 flex-wrap">
+              <h1 className="text-xl font-bold text-main font-display">{profile?.name}</h1>
+              {profile?.pronouns && (
+                <span className="text-xs font-medium text-accent bg-accent/10 px-2 py-0.5 rounded-full">
+                  {profile.pronouns}
+                </span>
+              )}
+            </div>
             <p className="text-sm text-muted mt-1">{profile?.email}</p>
           </div>
 

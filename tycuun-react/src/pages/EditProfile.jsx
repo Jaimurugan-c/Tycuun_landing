@@ -22,8 +22,10 @@ export default function EditProfile() {
   const [imagePreview, setImagePreview] = useState(null);
   const [currentImage, setCurrentImage] = useState('');
   const [cropImageSrc, setCropImageSrc] = useState(null);
+  const [emailError, setEmailError] = useState('');
   const [form, setForm] = useState({
     name: '',
+    email: '',
     address: '',
     city: '',
     bloodGroup: '',
@@ -39,6 +41,7 @@ export default function EditProfile() {
         const u = res.data.user;
         setForm({
           name: u.name || '',
+          email: u.email || '',
           address: u.address || '',
           city: u.city || '',
           bloodGroup: u.bloodGroup || '',
@@ -56,8 +59,14 @@ export default function EditProfile() {
     fetchProfile();
   }, []);
 
+  const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setForm({ ...form, [name]: value });
+    if (name === 'email') {
+      setEmailError(value && !validateEmail(value) ? 'Enter a valid email address' : '');
+    }
   };
 
   const handleFileSelect = (e) => {
@@ -82,6 +91,10 @@ export default function EditProfile() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateEmail(form.email)) {
+      setEmailError('Enter a valid email address');
+      return;
+    }
     setSaving(true);
     setError('');
     try {
@@ -225,6 +238,25 @@ export default function EditProfile() {
                 required
                 className={inputClass}
               />
+            </div>
+
+            {/* Email */}
+            <div>
+              <label className="block text-xs font-medium text-muted uppercase tracking-wider mb-1.5">
+                Email
+              </label>
+              <input
+                type="email"
+                name="email"
+                value={form.email}
+                onChange={handleChange}
+                placeholder="you@example.com"
+                required
+                className={`${inputClass} ${emailError ? '!border-red-500 focus:!ring-red-500/30' : ''}`}
+              />
+              {emailError && (
+                <p className="text-xs text-red-500 mt-1">{emailError}</p>
+              )}
             </div>
 
             {/* Address */}
