@@ -7,6 +7,8 @@ import PhoneInput from '../components/PhoneInput';
 import ImageCropModal from '../components/ImageCropModal';
 
 const BLOOD_GROUPS = ['', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+const GENDERS = ['Male', 'Female', 'Other', 'Prefer not to say'];
+const PRONOUNS = ['He/Him', 'She/Her', 'They/Them'];
 
 export default function EditProfile() {
   const navigate = useNavigate();
@@ -26,6 +28,8 @@ export default function EditProfile() {
     city: '',
     bloodGroup: '',
     phoneNumber: '',
+    gender: '',
+    pronouns: '',
   });
 
   useEffect(() => {
@@ -39,6 +43,8 @@ export default function EditProfile() {
           city: u.city || '',
           bloodGroup: u.bloodGroup || '',
           phoneNumber: u.phoneNumber || '',
+          gender: u.gender || '',
+          pronouns: u.pronouns || '',
         });
         setCurrentImage(u.profileImage || '');
       } catch (err) {
@@ -85,6 +91,8 @@ export default function EditProfile() {
       formData.append('city', form.city);
       formData.append('bloodGroup', form.bloodGroup);
       formData.append('phoneNumber', form.phoneNumber);
+      formData.append('gender', form.gender);
+      formData.append('pronouns', form.pronouns);
       if (imageFile) {
         formData.append('profileImage', imageFile);
       }
@@ -265,6 +273,42 @@ export default function EditProfile() {
                   <option key={bg} value={bg}>{bg}</option>
                 ))}
               </select>
+            </div>
+
+            {/* Gender & Pronouns */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-muted uppercase tracking-wider mb-1.5">
+                  Gender
+                </label>
+                <select
+                  name="gender"
+                  value={form.gender}
+                  onChange={handleChange}
+                  className={inputClass + ' appearance-none cursor-pointer'}
+                >
+                  <option value="">Select gender</option>
+                  {GENDERS.map((g) => (
+                    <option key={g} value={g}>{g}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-muted uppercase tracking-wider mb-1.5">
+                  Pronouns
+                </label>
+                <select
+                  name="pronouns"
+                  value={form.pronouns}
+                  onChange={handleChange}
+                  className={inputClass + ' appearance-none cursor-pointer'}
+                >
+                  <option value="">Select pronouns</option>
+                  {PRONOUNS.map((p) => (
+                    <option key={p} value={p}>{p}</option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             {/* Phone Number */}

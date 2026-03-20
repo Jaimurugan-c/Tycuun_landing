@@ -40,6 +40,16 @@ const userSchema = new mongoose.Schema({
     default: '',
     trim: true,
   },
+  gender: {
+    type: String,
+    default: '',
+    trim: true,
+  },
+  pronouns: {
+    type: String,
+    default: '',
+    trim: true,
+  },
   createdAt: {
     type: Date,
     default: Date.now,

@@ -5,7 +5,7 @@ const cloudinary = require('../config/cloudinary');
 exports.getProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).select(
-      'name email _id createdAt profileImage address city bloodGroup phoneNumber'
+      'name email _id createdAt profileImage address city bloodGroup phoneNumber gender pronouns'
     );
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found' });
@@ -19,7 +19,7 @@ exports.getProfile = async (req, res) => {
 // PUT /api/user/profile
 exports.updateProfile = async (req, res) => {
   try {
-    const { name, address, city, bloodGroup, phoneNumber } = req.body;
+    const { name, address, city, bloodGroup, phoneNumber, gender, pronouns } = req.body;
 
     const user = await User.findById(req.user._id);
     if (!user) {
@@ -31,6 +31,8 @@ exports.updateProfile = async (req, res) => {
     if (city !== undefined) user.city = city;
     if (bloodGroup !== undefined) user.bloodGroup = bloodGroup;
     if (phoneNumber !== undefined) user.phoneNumber = phoneNumber;
+    if (gender !== undefined) user.gender = gender;
+    if (pronouns !== undefined) user.pronouns = pronouns;
 
     // Upload image to Cloudinary if provided
     if (req.file) {

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Loader2, Mail, MapPin, Droplets, Calendar, Hash, User, ArrowRight, Pencil, Phone, Camera } from 'lucide-react';
+import { Loader2, Mail, MapPin, Droplets, Calendar, Hash, User, ArrowRight, Pencil, Phone, Camera, UserCircle, MessageCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import * as api from '../services/api';
 
@@ -83,6 +83,8 @@ export default function Profile() {
     { icon: MapPin, label: 'Address', value: profile?.address || '—' },
     { icon: MapPin, label: 'City', value: profile?.city || '—' },
     { icon: Droplets, label: 'Blood Group', value: profile?.bloodGroup || '—' },
+    { icon: UserCircle, label: 'Gender', value: profile?.gender || '—' },
+    { icon: MessageCircle, label: 'Pronouns', value: profile?.pronouns || '—' },
     { icon: Phone, label: 'Phone Number', value: profile?.phoneNumber || '—' },
   ];
 
