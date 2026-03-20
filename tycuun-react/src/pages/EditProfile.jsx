@@ -4,6 +4,7 @@ import { Loader2, ArrowLeft, Check, Camera, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import * as api from '../services/api';
 import PhoneInput from '../components/PhoneInput';
+import ImageCropModal from '../components/ImageCropModal';
 
 const BLOOD_GROUPS = ['', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
@@ -18,6 +19,7 @@ export default function EditProfile() {
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [currentImage, setCurrentImage] = useState('');
+  const [cropImageSrc, setCropImageSrc] = useState(null);
   const [form, setForm] = useState({
     name: '',
     address: '',
@@ -55,17 +57,21 @@ export default function EditProfile() {
   const handleFileSelect = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    setImageFile(file);
     const reader = new FileReader();
-    reader.onload = (ev) => setImagePreview(ev.target.result);
+    reader.onload = (ev) => setCropImageSrc(ev.target.result);
     reader.readAsDataURL(file);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleCropDone = (croppedFile, previewUrl) => {
+    setImageFile(croppedFile);
+    setImagePreview(previewUrl);
+    setCropImageSrc(null);
   };
 
   const removeSelectedImage = () => {
     setImageFile(null);
     setImagePreview(null);
-    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const handleSubmit = async (e) => {
@@ -195,9 +201,6 @@ export default function EditProfile() {
                   className="hidden"
                 />
               </div>
-              {imageFile && (
-                <p className="text-xs text-muted mt-2">{imageFile.name}</p>
-              )}
             </div>
 
             {/* Name */}
@@ -299,6 +302,15 @@ export default function EditProfile() {
           </form>
         </div>
       </div>
+
+      {/* Crop Modal */}
+      {cropImageSrc && (
+        <ImageCropModal
+          imageSrc={cropImageSrc}
+          onCropDone={handleCropDone}
+          onClose={() => setCropImageSrc(null)}
+        />
+      )}
     </div>
   );
 }
